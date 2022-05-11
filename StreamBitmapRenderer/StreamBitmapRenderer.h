@@ -33,6 +33,7 @@ public:
 		UINT width,
 		UINT height);
 
+	void Resize(UINT width, UINT height);
 	void DrawOnce();
 };
 

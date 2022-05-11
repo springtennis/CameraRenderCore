@@ -77,6 +77,12 @@ HRESULT StreamBitmapRenderer::RegisterBitmapBuffer(
 	return E_FAIL;
 }
 
+void StreamBitmapRenderer::Resize(UINT width, UINT height)
+{
+	if (m_pRenderTarget)
+		m_pRenderTarget->Resize(D2D1::SizeU(width, height));
+}
+
 void StreamBitmapRenderer::DrawOnce()
 {
 	if (!m_pRenderTarget)
