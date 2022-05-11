@@ -13,6 +13,8 @@ HWND g_hwnd;
 WCHAR szTitle[MAX_LOADSTRING];
 WCHAR szWindowClass[MAX_LOADSTRING];
 
+StreamBitmapRenderer g_streamBitmapRenderer;
+
 ATOM                MyRegisterClass(HINSTANCE hInstance);
 BOOL                InitInstance(HINSTANCE, int);
 LRESULT CALLBACK    WndProc(HWND, UINT, WPARAM, LPARAM);
@@ -24,7 +26,7 @@ void randomBitmap(CHAR* pBuffer, UINT width, UINT height)
 
     std::random_device rd;
     std::mt19937 gen(rd());
-    std::uniform_int_distribution<DWORD32>dis(2147483647);
+    std::uniform_int_distribution<int>dis(0, 255);
 
     for (i = 0; i < height; i++)
     {
@@ -32,8 +34,10 @@ void randomBitmap(CHAR* pBuffer, UINT width, UINT height)
         for (j = 0; j < width; j++)
         {
             UINT startIdx = startRowIdx + 4 * j;
-            *(DWORD32*)&pBuffer[startIdx] = dis(gen);
-            pBuffer[startIdx + 3] = 255;
+            pBuffer[startIdx + 0] = dis(gen); // B
+            pBuffer[startIdx + 1] = i == j ? 255 : 0; // G
+            pBuffer[startIdx + 2] = i == j ? 255 : 0; // R
+            pBuffer[startIdx + 3] = 255; // A
         }
     }
 }
@@ -59,12 +63,11 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
     // Init StreamBitmapRenderer
     HRESULT hr;
-    StreamBitmapRenderer streamBitmapRenderer;
     DisplayInfo dInfo[] = {
         {0.0f ,0.0f ,1.0f, 0.5f},
         {0.2f, 0.2f, 0.5f, 0.5f}
     };
-    hr = streamBitmapRenderer.InitInstance(g_hwnd, 2, dInfo);
+    hr = g_streamBitmapRenderer.InitInstance(g_hwnd, 2, dInfo);
 
     // Pseudo bitmap image in memory
     UINT b1_width = 20;
@@ -78,8 +81,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     ZeroMemory(b2_buffer, b2_width * b2_height * 4);
 
     // Register buffer
-    streamBitmapRenderer.RegisterBitmapBuffer(0, b1_buffer, b1_width, b1_height);
-    streamBitmapRenderer.RegisterBitmapBuffer(1, b2_buffer, b2_width, b2_height);
+    g_streamBitmapRenderer.RegisterBitmapBuffer(0, b1_buffer, b1_width, b1_height);
+    g_streamBitmapRenderer.RegisterBitmapBuffer(1, b2_buffer, b2_width, b2_height);
 
     // Loop
     MSG msg = { 0 };
@@ -100,7 +103,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
             start = current;
             randomBitmap(b1_buffer, b1_width, b1_height);
             randomBitmap(b2_buffer, b2_width, b2_height);
-            streamBitmapRenderer.DrawOnce();
+            g_streamBitmapRenderer.DrawOnce();
         }
     }
 
@@ -150,6 +153,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
     switch (message)
     {
+    case WM_SIZE:
+    {
+        UINT width = LOWORD(lParam);
+        UINT height = HIWORD(lParam);
+        g_streamBitmapRenderer.Resize(width, height);
+    }
     case WM_COMMAND:
         {
             int wmId = LOWORD(wParam);
