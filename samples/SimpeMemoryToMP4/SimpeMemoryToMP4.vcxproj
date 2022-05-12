@@ -148,12 +148,12 @@
     <ClCompile Include="SimpeMemoryToMP4.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Mp4Recorder\Mp4Recorder.vcxproj">
-      <Project>{2573105d-14d6-4a83-b05a-0cdb5693ee96}</Project>
-    </ProjectReference>
+    <None Include=".gitignore" />
   </ItemGroup>
   <ItemGroup>
-    <None Include=".gitignore" />
+    <ProjectReference Include="..\..\Mp4Recorder\Mp4Recorder.vcxproj">
+      <Project>{2573105d-14d6-4a83-b05a-0cdb5693ee96}</Project>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
