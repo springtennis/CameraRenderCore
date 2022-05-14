@@ -10,16 +10,4 @@
 // 여기에 미리 컴파일하려는 헤더 추가
 #include "framework.h"
 
-extern "C" {
-#include "libavcodec/avcodec.h"
-#include "libavformat/avformat.h"
-#include "libavutil/avutil.h"
-#include "libswscale/swscale.h"
-#include "libavutil/imgutils.h"
-#include "libavcodec/avcodec.h"
-#include "libavformat/avformat.h"
-#include "libavutil/timestamp.h"
-#include "libavutil/opt.h"
-};
-
 #endif //PCH_H
