@@ -64,9 +64,22 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     // Init StreamBitmapRenderer
     HRESULT hr;
     DisplayInfo dInfo[] = {
-        {0.0f ,0.0f ,1.0f, 0.5f},
-        {0.2f, 0.2f, 0.5f, 0.5f}
+        {0.0f ,0.0f ,1.0f, 0.5f, 1.0f, 1.0f},
+        {0.2f, 0.2f, 0.5f, 0.5f, 1.0f, 1.0f}
     };
+
+    // Get monitor dpi scale
+    UINT dpiX, dpiY;
+    HMONITOR hMonitor = MonitorFromWindow(g_hwnd, MONITOR_DEFAULTTOPRIMARY);
+    GetDpiForMonitor(hMonitor, MDT_EFFECTIVE_DPI, &dpiX, &dpiY);
+
+    dInfo[0].dpiXScale = (float)dpiX / 96.0f;
+    dInfo[0].dpiYScale = (float)dpiX / 96.0f;
+
+    dInfo[1].dpiXScale = dInfo[0].dpiXScale;
+    dInfo[1].dpiYScale = dInfo[0].dpiYScale;
+
+
     hr = g_streamBitmapRenderer.InitInstance(g_hwnd, 2, dInfo);
 
     // Pseudo bitmap image in memory
