@@ -4,6 +4,7 @@
 BitmapRenderer::BitmapRenderer() :
     m_startX(0), m_startY(0),
     m_lenX(0), m_lenY(0),
+    m_dpiXScale(1.0f), m_dpiYScale(1.0f),
     m_pBitmap(NULL),
     m_pRenderTarget(NULL),
     m_pBitmapBrush(NULL),
@@ -19,7 +20,8 @@ BitmapRenderer::~BitmapRenderer()
 HRESULT BitmapRenderer::InitInstance(
     ID2D1HwndRenderTarget* pRenderTarge,
     FLOAT startX, FLOAT startY,
-    FLOAT lenX, FLOAT lenY)
+    FLOAT lenX, FLOAT lenY,
+    FLOAT dpiXScale, FLOAT dpiYScale)
 {
     m_pRenderTarget = pRenderTarge;
 
@@ -28,6 +30,9 @@ HRESULT BitmapRenderer::InitInstance(
 
     m_lenX = lenX;
     m_lenY = lenY;
+
+    m_dpiXScale = dpiXScale;
+    m_dpiYScale = dpiYScale;
 
     return S_OK;
 }
@@ -45,15 +50,12 @@ HRESULT BitmapRenderer::RegisterBuffer(void* pBuffer, UINT width, UINT height)
 
     SafeRelease(&m_pBitmap);
 
-    FLOAT dpiX, dpiY;
-    m_pRenderTarget->GetDpi(&dpiX, &dpiY);
-
     D2D1_BITMAP_PROPERTIES props = {
         D2D1::PixelFormat(
             DXGI_FORMAT_B8G8R8A8_UNORM,
             D2D1_ALPHA_MODE_IGNORE),
-        dpiX,
-        dpiY
+        96.0f / m_dpiXScale,
+        96.0f / m_dpiYScale
     };
 
     m_pBitmapBuffer = pBuffer;
@@ -123,8 +125,8 @@ HRESULT BitmapRenderer::Update()
     float a = width * m_lenX;
     float b = height * m_lenY;
 
-    float w = (float)rectBitmap.right;
-    float h = (float)rectBitmap.bottom;
+    float w = (float)rectBitmap.right * m_dpiXScale;
+    float h = (float)rectBitmap.bottom * m_dpiYScale;
 
     float R = a / b;
     float r = w / h;

@@ -5,6 +5,7 @@
 struct DisplayInfo {
 	FLOAT startX, startY;
 	FLOAT lenX, lenY;
+	FLOAT dpiXScale, dpiYScale;
 };
 
 class StreamBitmapRenderer

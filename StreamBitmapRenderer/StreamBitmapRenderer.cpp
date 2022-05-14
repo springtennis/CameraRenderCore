@@ -57,7 +57,9 @@ HRESULT StreamBitmapRenderer::InitInstance(
 			displayInfo[i].startX,
 			displayInfo[i].startY,
 			displayInfo[i].lenX,
-			displayInfo[i].lenY);
+			displayInfo[i].lenY,
+			displayInfo[i].dpiXScale,
+			displayInfo[i].dpiYScale);
 
 	return hr;
 }

@@ -13,7 +13,8 @@ public:
 	HRESULT InitInstance(
 		ID2D1HwndRenderTarget* pRenderTarge,
 		FLOAT startX, FLOAT startY,
-		FLOAT lenX, FLOAT lenY);
+		FLOAT lenX, FLOAT lenY,
+		FLOAT dpiX, FLOAT dpiY);
 
 	HRESULT RegisterBuffer(void* pBuffer, UINT width, UINT height);
 	void GetBuffer(void** pBuffer, UINT* width, UINT* height);
@@ -27,5 +28,6 @@ private:
 
 	FLOAT m_startX, m_startY;
 	FLOAT m_lenX, m_lenY;
+	FLOAT m_dpiXScale, m_dpiYScale;
 };
 
