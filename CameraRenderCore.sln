@@ -15,9 +15,9 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SimpeMemoryToMP4", "samples
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SentechCameraCore", "SentechCameraCore\SentechCameraCore.vcxproj", "{71FA765F-F8AD-44BE-A0F4-51654AE85F76}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SentechCameraCoreWPF", "SentechCameraCoreWPF\SentechCameraCoreWPF.csproj", "{F456ECA9-6538-4482-9D3F-E402EF8AEB33}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SentechCameraCoreWPF", "SentechCameraCoreWPF\SentechCameraCoreWPF.csproj", "{F456ECA9-6538-4482-9D3F-E402EF8AEB33}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SimpleCameraStreamerWPF", "..\samples\CameraRenderCore\SimpleCameraStreamerWPF\SimpleCameraStreamerWPF.csproj", "{B46980D8-AC45-49F5-B5BB-40ADE15F483F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SimpleCameraStreamerWPF", "samples\SimpleCameraStreamerWPF\SimpleCameraStreamerWPF.csproj", "{85B15887-3D94-40ED-8680-D2E62A30F0E7}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -101,18 +101,18 @@ Global
 		{F456ECA9-6538-4482-9D3F-E402EF8AEB33}.Release|x64.Build.0 = Release|Any CPU
 		{F456ECA9-6538-4482-9D3F-E402EF8AEB33}.Release|x86.ActiveCfg = Release|Any CPU
 		{F456ECA9-6538-4482-9D3F-E402EF8AEB33}.Release|x86.Build.0 = Release|Any CPU
-		{B46980D8-AC45-49F5-B5BB-40ADE15F483F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{B46980D8-AC45-49F5-B5BB-40ADE15F483F}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{B46980D8-AC45-49F5-B5BB-40ADE15F483F}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{B46980D8-AC45-49F5-B5BB-40ADE15F483F}.Debug|x64.Build.0 = Debug|Any CPU
-		{B46980D8-AC45-49F5-B5BB-40ADE15F483F}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{B46980D8-AC45-49F5-B5BB-40ADE15F483F}.Debug|x86.Build.0 = Debug|Any CPU
-		{B46980D8-AC45-49F5-B5BB-40ADE15F483F}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{B46980D8-AC45-49F5-B5BB-40ADE15F483F}.Release|Any CPU.Build.0 = Release|Any CPU
-		{B46980D8-AC45-49F5-B5BB-40ADE15F483F}.Release|x64.ActiveCfg = Release|Any CPU
-		{B46980D8-AC45-49F5-B5BB-40ADE15F483F}.Release|x64.Build.0 = Release|Any CPU
-		{B46980D8-AC45-49F5-B5BB-40ADE15F483F}.Release|x86.ActiveCfg = Release|Any CPU
-		{B46980D8-AC45-49F5-B5BB-40ADE15F483F}.Release|x86.Build.0 = Release|Any CPU
+		{85B15887-3D94-40ED-8680-D2E62A30F0E7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{85B15887-3D94-40ED-8680-D2E62A30F0E7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{85B15887-3D94-40ED-8680-D2E62A30F0E7}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{85B15887-3D94-40ED-8680-D2E62A30F0E7}.Debug|x64.Build.0 = Debug|Any CPU
+		{85B15887-3D94-40ED-8680-D2E62A30F0E7}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{85B15887-3D94-40ED-8680-D2E62A30F0E7}.Debug|x86.Build.0 = Debug|Any CPU
+		{85B15887-3D94-40ED-8680-D2E62A30F0E7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{85B15887-3D94-40ED-8680-D2E62A30F0E7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{85B15887-3D94-40ED-8680-D2E62A30F0E7}.Release|x64.ActiveCfg = Release|Any CPU
+		{85B15887-3D94-40ED-8680-D2E62A30F0E7}.Release|x64.Build.0 = Release|Any CPU
+		{85B15887-3D94-40ED-8680-D2E62A30F0E7}.Release|x86.ActiveCfg = Release|Any CPU
+		{85B15887-3D94-40ED-8680-D2E62A30F0E7}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -120,7 +120,7 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{62060D00-FA0A-41DF-9F7E-A40597734064} = {2D1D450E-4B8F-4891-9A19-33F571044844}
 		{E0D6A48E-EF3D-41FC-8B69-BB129735C749} = {2D1D450E-4B8F-4891-9A19-33F571044844}
-		{B46980D8-AC45-49F5-B5BB-40ADE15F483F} = {2D1D450E-4B8F-4891-9A19-33F571044844}
+		{85B15887-3D94-40ED-8680-D2E62A30F0E7} = {2D1D450E-4B8F-4891-9A19-33F571044844}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {2A6AE8D3-91FF-45B1-A7B3-A5298DBEA70A}
