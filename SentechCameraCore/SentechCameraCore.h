@@ -18,7 +18,6 @@ namespace SentechCameraCore {
 		float m_dpiXScale;
 		float m_dpiYScale;
 
-		void loop();
 
 	public:
 		HWND m_hwndHost;
@@ -34,6 +33,8 @@ namespace SentechCameraCore {
 			float dpiXScale,
 			float dpiYScale,
 			void* hwndParent);
+
+		void loop();
 	};
 
 	public ref class Wrapper

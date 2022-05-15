@@ -83,15 +83,29 @@
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>C:\ffmpeg\include;$(SolutionDir)Mp4Recorder;$(SolutionDir)StreamBitmapRenderer;$(STAPI_ROOT_PATH)Include\StApi;$(STAPI_ROOT_PATH)Include\GenICam;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard_C>stdc11</LanguageStandard_C>
+      <LanguageStandard>stdcpp14</LanguageStandard>
+      <ExceptionHandling>false</ExceptionHandling>
+      <BasicRuntimeChecks>Default</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
     </ClCompile>
     <Link>
       <AdditionalDependencies>user32.lib;d2d1.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>C:\opencv\build\x64\vc15\lib;C:\ffmpeg\lib;$(STAPI_ROOT_PATH)lib/$(PlatformName);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>C:\ffmpeg\lib;$(STAPI_ROOT_PATH)lib/$(PlatformName);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AddModuleNamesToAssembly>
       </AddModuleNamesToAssembly>
       <DelayLoadDLLs>
       </DelayLoadDLLs>
+      <ForceSymbolReferences>
+      </ForceSymbolReferences>
     </Link>
+    <Lib>
+      <AdditionalDependencies>user32.lib;d2d1.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Lib>
+    <Lib>
+      <AdditionalLibraryDirectories>
+      </AdditionalLibraryDirectories>
+    </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>

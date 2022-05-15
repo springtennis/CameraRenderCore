@@ -3,37 +3,13 @@
 #include "SentechCameraCore.h"
 
 #include <vector>
-#include <random>
-#include <chrono>
 #include <thread>
 
 using namespace StApi;
 using namespace std;
 
-#define FPS     30
+#define FPS     60
 #define GetCNodePtr(x, nodeMap)	GenApi::CNodePtr(nodeMap->GetNode(x))
-
-void randomBitmap(CHAR* pBuffer, UINT width, UINT height)
-{
-	UINT i, j;
-
-	std::random_device rd;
-	std::mt19937 gen(rd());
-	std::uniform_int_distribution<int>dis(0, 255);
-
-	for (i = 0; i < height; i++)
-	{
-		UINT startRowIdx = i * width * 4;
-		for (j = 0; j < width; j++)
-		{
-			UINT startIdx = startRowIdx + 4 * j;
-			pBuffer[startIdx + 0] = dis(gen); // B
-			pBuffer[startIdx + 1] = i == j ? 255 : 0; // G
-			pBuffer[startIdx + 2] = i == j ? 255 : 0; // R
-			pBuffer[startIdx + 3] = 255; // A
-		}
-	}
-}
 
 namespace SentechCameraCore {
 	
@@ -114,19 +90,28 @@ namespace SentechCameraCore {
             IStImage* pIStImage = pIStStreamBuffer->GetIStImage(); // Get Raw Frame
             uint64_t id = pIStStreamBuffer->GetIStStreamBufferInfo()->GetFrameID();
 
-			m_streamBitmapRenderer.RegisterBitmapBuffer(0, pIStImage->GetImageBuffer(), frameWidth[0] / 4, frameHeight[0] / 4);
+			// Debayering
+			const StApi::EStPixelFormatNamingConvention_t ePFNC = pIStImage->GetImagePixelFormat();
+			StApi::IStPixelFormatInfo* const pIStPixelFormatInfo = StApi::GetIStPixelFormatInfo(ePFNC);
+			
+			if (!pIStPixelFormatInfo->IsBayer())
+				continue;
+
+			const size_t nImageWidth = pIStImage->GetImageWidth();
+			const size_t nImageHeight = pIStImage->GetImageHeight();
+
+			int nConvert = 0;
+			switch (pIStPixelFormatInfo->GetPixelColorFilter()){
+			case(StPixelColorFilter_BayerRG): nConvert = BitmapRenderer::Frame_BayerRG;	break;
+			case(StPixelColorFilter_BayerGR): nConvert = BitmapRenderer::Frame_BayerGR;	break;
+			case(StPixelColorFilter_BayerGB): nConvert = BitmapRenderer::Frame_BayerGB;	break;
+			case(StPixelColorFilter_BayerBG): nConvert = BitmapRenderer::Frame_BayerBG;	break;
+			default:
+				continue;
+			}
+
+			m_streamBitmapRenderer.RegisterBayerBitmapBuffer(0, nConvert, pIStImage->GetImageBuffer(), frameWidth[0], frameHeight[0]);
 			m_streamBitmapRenderer.DrawOnce();
-			 
-			//// Conversion
-			//if (!RawFrameToBGRA(pIStImage, &inputMat[0], &outputMat[0]))
-			//	continue;
-
-			//if (outputMat[0].size().height <= 0 ||
-			//	outputMat[0].size().width <= 0)
-			//	continue;
-
-			//m_streamBitmapRenderer.RegisterBitmapBuffer(0, outputMat[0].ptr(0), frameWidth[0], frameHeight[0]);
-			//m_streamBitmapRenderer.DrawOnce();
 		}
 
 		pIStDeviceList.AcquisitionStop();
