@@ -1,6 +1,8 @@
 #include "pch.h"
 #include "BitmapRenderer.h"
 
+#include "opencv2/opencv.hpp"
+
 BitmapRenderer::BitmapRenderer() :
     m_startX(0), m_startY(0),
     m_lenX(0), m_lenY(0),
@@ -8,13 +10,17 @@ BitmapRenderer::BitmapRenderer() :
     m_pBitmap(NULL),
     m_pRenderTarget(NULL),
     m_pBitmapBrush(NULL),
-    m_pBitmapBuffer(NULL)
+    m_pBitmapBuffer(NULL),
+    m_pInputMat(NULL), m_pOutputMat(NULL)
 {}
 
 BitmapRenderer::~BitmapRenderer()
 {
     SafeRelease(&m_pBitmap);
     SafeRelease(&m_pBitmapBrush);
+    
+    delete m_pInputMat;
+    delete m_pOutputMat;
 }
 
 HRESULT BitmapRenderer::InitInstance(
@@ -33,6 +39,9 @@ HRESULT BitmapRenderer::InitInstance(
 
     m_dpiXScale = dpiXScale;
     m_dpiYScale = dpiYScale;
+
+    m_pInputMat = new cv::Mat();
+    m_pOutputMat = new cv::Mat();
 
     return S_OK;
 }
@@ -91,6 +100,47 @@ void BitmapRenderer::GetBuffer(void** pBuffer, UINT* width, UINT* height)
         *width = 0;
         *height = 0;
     }
+}
+
+HRESULT BitmapRenderer::Debayering(
+    UINT bayerType,
+    void* inputBuffer,
+    void** outputBuffer,
+    UINT width,
+    UINT height)
+{
+    HRESULT hr = S_OK;
+    
+    if (!m_pInputMat || !m_pOutputMat)
+        return E_FAIL;
+
+    cv::Mat* inputMat = (cv::Mat*)m_pInputMat;
+    cv::Mat* outputMat = (cv::Mat*)m_pOutputMat;
+
+    // Create a OpenCV buffer for the input image.
+    if ((inputMat->cols != width) || (inputMat->rows != height) || (inputMat->type() != CV_8UC1))
+        inputMat->create(height, width, CV_8UC1);
+
+    // Copy the input image data to the buffer for OpenCV.
+    const size_t dwBufferSize = inputMat->rows * inputMat->cols * inputMat->elemSize() * inputMat->channels();
+    memcpy(inputMat->ptr(0), inputBuffer, dwBufferSize);
+
+    int nConvert = 0;
+
+    switch (bayerType) {
+        case Frame_BayerRG: nConvert = cv::COLOR_BayerRG2RGBA;	break;
+        case(Frame_BayerGR): nConvert = cv::COLOR_BayerGR2RGBA;	break;
+        case(Frame_BayerGB): nConvert = cv::COLOR_BayerGB2RGBA;	break;
+        case(Frame_BayerBG): nConvert = cv::COLOR_BayerBG2RGBA;	break;
+        default:
+            return E_FAIL;
+    }
+
+    cvtColor(*inputMat, *outputMat, nConvert);
+
+    *outputBuffer = outputMat->ptr(0);
+
+    return hr;
 }
 
 HRESULT BitmapRenderer::Update()

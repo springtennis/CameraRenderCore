@@ -79,6 +79,27 @@ HRESULT StreamBitmapRenderer::RegisterBitmapBuffer(
 	return E_FAIL;
 }
 
+HRESULT StreamBitmapRenderer::RegisterBayerBitmapBuffer(
+	UINT n,
+	UINT bayerType,
+	void* pBuffer,
+	UINT width,
+	UINT height)
+{
+	HRESULT hr = S_OK;
+
+	if (!m_pBitmapRenderer || n > m_nDisplay)
+		return E_FAIL;
+
+	void* outputBuffer = NULL;
+	hr = m_pBitmapRenderer[n].Debayering(bayerType, pBuffer, &outputBuffer, width, height);
+
+	if (FAILED(hr))
+		return hr;
+
+	return m_pBitmapRenderer[n].RegisterBuffer(outputBuffer, width, height);
+}
+
 void StreamBitmapRenderer::Resize(UINT width, UINT height)
 {
 	if (m_pRenderTarget)

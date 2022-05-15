@@ -5,6 +5,11 @@
 class BitmapRenderer
 {
 public:
+	static const UINT Frame_BayerRG = 1;
+	static const UINT Frame_BayerGR = 2;
+	static const UINT Frame_BayerGB = 3;
+	static const UINT Frame_BayerBG = 4;
+
 	BitmapRenderer();
 	~BitmapRenderer();
 
@@ -20,6 +25,12 @@ public:
 	void GetBuffer(void** pBuffer, UINT* width, UINT* height);
 
 	HRESULT Update();
+	HRESULT Debayering(
+		UINT bayerType,
+		void* inputBuffer,
+		void** outputBuffer,
+		UINT width,
+		UINT height);
 
 private:
 	void* m_pBitmapBuffer;
@@ -29,5 +40,7 @@ private:
 	FLOAT m_startX, m_startY;
 	FLOAT m_lenX, m_lenY;
 	FLOAT m_dpiXScale, m_dpiYScale;
+
+	void* m_pInputMat, *m_pOutputMat;
 };
 

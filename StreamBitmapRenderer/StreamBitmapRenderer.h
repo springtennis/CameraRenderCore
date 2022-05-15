@@ -34,6 +34,13 @@ public:
 		UINT width,
 		UINT height);
 
+	HRESULT RegisterBayerBitmapBuffer(
+		UINT n,
+		UINT bayerType,
+		void* pBuffer,
+		UINT width,
+		UINT height);
+
 	void Resize(UINT width, UINT height);
 	void DrawOnce();
 };
