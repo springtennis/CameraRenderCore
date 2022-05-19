@@ -12,6 +12,7 @@ public:
 
 	static const UINT Frame_DisplayModeFit = 0;
 	static const UINT Frame_DisplayModeCrop = 1;
+	static const UINT Frame_DisplayModeNone = 255;
 
 	BitmapRenderer();
 	~BitmapRenderer();

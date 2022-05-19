@@ -175,6 +175,9 @@ HRESULT BitmapRenderer::Update()
     if (!m_pRenderTarget || !m_pBitmap || !m_pBitmapBuffer)
         return E_FAIL;
 
+    if (m_displayMode == Frame_DisplayModeNone)
+        return S_OK;
+
     // Copy from memory
     D2D1_RECT_U rectBitmap = D2D1::RectU(
         0, 0, m_pBitmap->GetPixelSize().width, m_pBitmap->GetPixelSize().height
