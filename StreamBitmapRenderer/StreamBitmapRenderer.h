@@ -23,6 +23,7 @@ private:
 	ID2D1HwndRenderTarget* m_pRenderTarget;
 
 	std::vector<DisplayHandler> m_DisplayHandler;
+	BOOL m_layoutChanged;
 
 public:
 	static const UINT BITMAP_RGBA = 0;
@@ -37,6 +38,7 @@ public:
 	HRESULT InitInstance(HWND hwndHost);
 
 	DisplayHandler RegisterBitmapRenderer(DisplayInfo displayInfo);
+	HRESULT ModifyBitmapRenderer(DisplayHandler* displayHandler, DisplayInfo newDisplayInfo);
 
 	HRESULT RegisterBitmapBuffer(
 		DisplayHandler* displayHandler,

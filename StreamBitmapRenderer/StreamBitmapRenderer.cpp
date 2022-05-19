@@ -2,10 +2,13 @@
 #include "framework.h"
 #include "StreamBitmapRenderer.h"
 
+#include <algorithm> 
+
 StreamBitmapRenderer::StreamBitmapRenderer() :
 	m_hwndHost(NULL),
 	m_pDirect2dFactory(NULL),
-	m_pRenderTarget(NULL)
+	m_pRenderTarget(NULL),
+	m_layoutChanged(FALSE)
 {}
 
 StreamBitmapRenderer::~StreamBitmapRenderer()
@@ -78,7 +81,46 @@ DisplayHandler StreamBitmapRenderer::RegisterBitmapRenderer(DisplayInfo displayI
 
 	it = m_DisplayHandler.insert(it, displayHandler);
 
-	return *it;
+	return displayHandler;
+}
+
+bool cmpBitmapRenderer(DisplayHandler a, DisplayHandler b)
+{
+	return a.displayInfo.zIndex > b.displayInfo.zIndex;
+}
+
+HRESULT StreamBitmapRenderer::ModifyBitmapRenderer(DisplayHandler* displayHandler, DisplayInfo newDisplayInfo)
+{
+	if (!m_pRenderTarget || !displayHandler->pBitmapRenderer)
+		return E_FAIL;
+
+	// Check displayHandler is in current handler list
+	std::vector<DisplayHandler>::iterator it;
+	for (it = m_DisplayHandler.begin(); it != m_DisplayHandler.end(); it++)
+	{
+		if (it->pBitmapRenderer == displayHandler->pBitmapRenderer)
+			break;
+	}
+
+	if (it == m_DisplayHandler.end())
+		return E_FAIL;
+
+	// Update displayInfo & rearrange list
+	it->displayInfo = newDisplayInfo;
+	it->pBitmapRenderer->ChangeDisplayArea(
+		newDisplayInfo.startX,
+		newDisplayInfo.startY,
+		newDisplayInfo.lenX,
+		newDisplayInfo.lenY
+	);
+
+	*displayHandler = *it;
+
+	std::sort(m_DisplayHandler.rbegin(), m_DisplayHandler.rend(), cmpBitmapRenderer);
+
+	m_layoutChanged = TRUE;
+
+	return S_OK;
 }
 
 HRESULT StreamBitmapRenderer::RegisterBitmapBuffer(
@@ -133,6 +175,13 @@ void StreamBitmapRenderer::DrawOnce()
 		return;
 
 	m_pRenderTarget->BeginDraw();
+	
+	if (m_layoutChanged)
+	{
+		m_pRenderTarget->Clear();
+		m_layoutChanged = FALSE;
+	}
+
 	for (UINT i = 0; i < m_DisplayHandler.size(); i++)
 		m_DisplayHandler[i].pBitmapRenderer->Update();
 	m_pRenderTarget->EndDraw();
