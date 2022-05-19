@@ -61,26 +61,21 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
     HACCEL hAccelTable = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDC_RANDOMBITMAPDISPLAY));
 
-    // Init StreamBitmapRenderer
     HRESULT hr;
-    DisplayInfo dInfo[] = {
-        {0.0f ,0.0f ,1.0f, 0.5f, 1.0f, 1.0f},
-        {0.2f, 0.2f, 0.5f, 0.5f, 1.0f, 1.0f}
-    };
 
     // Get monitor dpi scale
     UINT dpiX, dpiY;
+    FLOAT dpiXScale, dpiYScale;
     HMONITOR hMonitor = MonitorFromWindow(g_hwnd, MONITOR_DEFAULTTOPRIMARY);
     GetDpiForMonitor(hMonitor, MDT_EFFECTIVE_DPI, &dpiX, &dpiY);
 
-    dInfo[0].dpiXScale = (float)dpiX / 96.0f;
-    dInfo[0].dpiYScale = (float)dpiX / 96.0f;
+    dpiXScale = (float)dpiX / 96.0f;
+    dpiYScale = (float)dpiX / 96.0f;
 
-    dInfo[1].dpiXScale = dInfo[0].dpiXScale;
-    dInfo[1].dpiYScale = dInfo[0].dpiYScale;
-
-
-    hr = g_streamBitmapRenderer.InitInstance(g_hwnd, 2, dInfo);
+    // Create Bitmap streamer
+    hr = g_streamBitmapRenderer.InitInstance(g_hwnd);
+    DisplayHandler display1 = g_streamBitmapRenderer.RegisterBitmapRenderer({ 0.0f, 0.0f, 1.0f, 0.5f, dpiXScale, dpiYScale, 0 });
+    DisplayHandler display2 = g_streamBitmapRenderer.RegisterBitmapRenderer({ 0.2f, 0.2f, 0.5f, 0.5f, dpiXScale, dpiYScale, 1 });
 
     // Pseudo bitmap image in memory
     UINT b1_width = 20;
@@ -94,8 +89,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     ZeroMemory(b2_buffer, b2_width * b2_height * 4);
 
     // Register buffer
-    g_streamBitmapRenderer.RegisterBitmapBuffer(0, b1_buffer, b1_width, b1_height);
-    g_streamBitmapRenderer.RegisterBitmapBuffer(1, b2_buffer, b2_width, b2_height);
+    g_streamBitmapRenderer.RegisterBitmapBuffer(&display1, b1_buffer, b1_width, b1_height);
+    g_streamBitmapRenderer.RegisterBitmapBuffer(&display2, b2_buffer, b2_width, b2_height);
 
     // Loop
     MSG msg = { 0 };
