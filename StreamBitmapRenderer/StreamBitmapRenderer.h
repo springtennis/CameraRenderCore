@@ -1,11 +1,18 @@
 #pragma once
 
 #include "BitmapRenderer.h"
+#include <vector>
 
 struct DisplayInfo {
 	FLOAT startX, startY;
 	FLOAT lenX, lenY;
 	FLOAT dpiXScale, dpiYScale;
+	UINT zIndex;
+};
+
+struct DisplayHandler {
+	BitmapRenderer* pBitmapRenderer;
+	DisplayInfo displayInfo;
 };
 
 class StreamBitmapRenderer
@@ -15,27 +22,25 @@ private:
 	ID2D1Factory* m_pDirect2dFactory;
 	ID2D1HwndRenderTarget* m_pRenderTarget;
 
-	UINT m_nDisplay;
-	BitmapRenderer* m_pBitmapRenderer;
+	std::vector<DisplayHandler> m_DisplayHandler;
 
 public:
 
 	StreamBitmapRenderer();
 	~StreamBitmapRenderer();
 
-	HRESULT InitInstance(
-		HWND hwndHost,
-		UINT nDisplay,
-		DisplayInfo* displayInfo);
+	HRESULT InitInstance(HWND hwndHost);
+
+	DisplayHandler RegisterBitmapRenderer(DisplayInfo displayInfo);
 
 	HRESULT RegisterBitmapBuffer(
-		UINT n,
+		DisplayHandler* displayHandler,
 		void* pBuffer,
 		UINT width,
 		UINT height);
 
 	HRESULT RegisterBayerBitmapBuffer(
-		UINT n,
+		DisplayHandler* displayHandler,
 		UINT bayerType,
 		void* pBuffer,
 		UINT width,

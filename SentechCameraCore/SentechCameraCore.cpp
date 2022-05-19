@@ -68,10 +68,8 @@ namespace SentechCameraCore {
 
 		// Init StreamBitmapRenderer
 		HRESULT hr = S_OK;
-		DisplayInfo dInfo[] = {
-			{0.0f ,0.0f ,1.0f, 1.0f, m_dpiXScale, m_dpiYScale}
-		};
-		hr = m_streamBitmapRenderer.InitInstance(m_hwndHost, 1, dInfo);
+		hr = m_streamBitmapRenderer.InitInstance(m_hwndHost);
+		DisplayHandler camera1Handler = m_streamBitmapRenderer.RegisterBitmapRenderer({0.0f, 0.0f, 1.0f, 1.0f, m_dpiXScale , m_dpiYScale,1});
 
 		///////////////////////////////////
 		// [[ Start Capter & display ]]
@@ -110,7 +108,7 @@ namespace SentechCameraCore {
 				continue;
 			}
 
-			m_streamBitmapRenderer.RegisterBayerBitmapBuffer(0, nConvert, pIStImage->GetImageBuffer(), frameWidth[0], frameHeight[0]);
+			m_streamBitmapRenderer.RegisterBayerBitmapBuffer(&camera1Handler, nConvert, pIStImage->GetImageBuffer(), frameWidth[0], frameHeight[0]);
 			m_streamBitmapRenderer.DrawOnce();
 		}
 

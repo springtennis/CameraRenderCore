@@ -5,21 +5,21 @@
 StreamBitmapRenderer::StreamBitmapRenderer() :
 	m_hwndHost(NULL),
 	m_pDirect2dFactory(NULL),
-	m_pRenderTarget(NULL),
-	m_nDisplay(0),
-	m_pBitmapRenderer(NULL)
+	m_pRenderTarget(NULL)
 {}
 
 StreamBitmapRenderer::~StreamBitmapRenderer()
 {
 	SafeRelease(&m_pRenderTarget);
 	SafeRelease(&m_pDirect2dFactory);
+	for (int i = 0; i < m_DisplayHandler.size(); i++) {
+		delete m_DisplayHandler[i].pBitmapRenderer;
+	}
+	m_DisplayHandler.clear();
+	m_DisplayHandler.shrink_to_fit();
 }
 
-HRESULT StreamBitmapRenderer::InitInstance(
-	HWND hwndHost,
-	UINT nDisplay,
-	DisplayInfo* displayInfo)
+HRESULT StreamBitmapRenderer::InitInstance(HWND hwndHost)
 {
 	HRESULT hr = S_OK;
 
@@ -48,39 +48,56 @@ HRESULT StreamBitmapRenderer::InitInstance(
 	if (FAILED(hr))
 		return hr;
 
-	// Register BitmapRenderer
-	m_nDisplay = nDisplay;
-	m_pBitmapRenderer = new BitmapRenderer[nDisplay];
-	for (UINT i = 0; i < nDisplay; i++)
-		m_pBitmapRenderer[i].InitInstance(
-			m_pRenderTarget,
-			displayInfo[i].startX,
-			displayInfo[i].startY,
-			displayInfo[i].lenX,
-			displayInfo[i].lenY,
-			displayInfo[i].dpiXScale,
-			displayInfo[i].dpiYScale);
-
 	return hr;
 }
 
+DisplayHandler StreamBitmapRenderer::RegisterBitmapRenderer(DisplayInfo displayInfo)
+{
+	if (!m_pRenderTarget)
+		return { NULL, { 0 } };
+
+	BitmapRenderer* pBitmapRenderer = new BitmapRenderer();
+	pBitmapRenderer->InitInstance(
+		m_pRenderTarget,
+		displayInfo.startX,
+		displayInfo.startY,
+		displayInfo.lenX,
+		displayInfo.lenY,
+		displayInfo.dpiXScale,
+		displayInfo.dpiYScale
+	);
+
+	DisplayHandler displayHandler = { pBitmapRenderer, displayInfo };
+
+	std::vector<DisplayHandler>::iterator it;
+	for (it = m_DisplayHandler.begin(); it != m_DisplayHandler.end(); it++)
+	{
+		if (it->displayInfo.zIndex > displayInfo.zIndex)
+			break;
+	}
+
+	it = m_DisplayHandler.insert(it, displayHandler);
+
+	return *it;
+}
+
 HRESULT StreamBitmapRenderer::RegisterBitmapBuffer(
-	UINT n,
+	DisplayHandler* displayHandler,
 	void* pBuffer,
 	UINT width,
 	UINT height)
 {
-	if (!m_pBitmapRenderer || n > m_nDisplay)
+	if (!m_pRenderTarget || !displayHandler->pBitmapRenderer)
 		return E_FAIL;
 
-	if (!m_pBitmapRenderer[n].m_pBitmap)
-		return m_pBitmapRenderer[n].RegisterBuffer(pBuffer, width, height);
+	if (!displayHandler->pBitmapRenderer->m_pBitmap)
+		return displayHandler->pBitmapRenderer->RegisterBuffer(pBuffer, width, height);
 
 	return E_FAIL;
 }
 
 HRESULT StreamBitmapRenderer::RegisterBayerBitmapBuffer(
-	UINT n,
+	DisplayHandler* displayHandler,
 	UINT bayerType,
 	void* pBuffer,
 	UINT width,
@@ -88,16 +105,16 @@ HRESULT StreamBitmapRenderer::RegisterBayerBitmapBuffer(
 {
 	HRESULT hr = S_OK;
 
-	if (!m_pBitmapRenderer || n > m_nDisplay)
+	if (!m_pRenderTarget || !displayHandler->pBitmapRenderer)
 		return E_FAIL;
 
 	void* outputBuffer = NULL;
-	hr = m_pBitmapRenderer[n].Debayering(bayerType, pBuffer, &outputBuffer, width, height);
+	hr = displayHandler->pBitmapRenderer->Debayering(bayerType, pBuffer, &outputBuffer, width, height);
 
 	if (FAILED(hr))
 		return hr;
 
-	return m_pBitmapRenderer[n].RegisterBuffer(outputBuffer, width, height);
+	return displayHandler->pBitmapRenderer->RegisterBuffer(outputBuffer, width, height);
 }
 
 void StreamBitmapRenderer::Resize(UINT width, UINT height)
@@ -112,7 +129,7 @@ void StreamBitmapRenderer::DrawOnce()
 		return;
 
 	m_pRenderTarget->BeginDraw();
-	for (UINT i = 0; i < m_nDisplay; i++)
-		m_pBitmapRenderer[i].Update();
+	for (UINT i = 0; i < m_DisplayHandler.size(); i++)
+		m_DisplayHandler[i].pBitmapRenderer->Update();
 	m_pRenderTarget->EndDraw();
 }
