@@ -6,6 +6,8 @@
 
 #include <StApi_TL.h>
 
+#include <atomic>
+
 using namespace System;
 
 namespace SentechCameraCore {
@@ -23,6 +25,8 @@ namespace SentechCameraCore {
 		HWND m_hwndHost;
 		StreamBitmapRenderer m_streamBitmapRenderer;
 		Mp4Recorder* mp4Recorder;
+
+		std::atomic<int> m_atomicInt;
 
 		Core();
 		~Core();

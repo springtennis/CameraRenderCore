@@ -4,6 +4,7 @@
 
 #include <vector>
 #include <thread>
+#include <mutex>
 
 using namespace StApi;
 using namespace std;
@@ -14,7 +15,8 @@ using namespace std;
 namespace SentechCameraCore {
 	
 	Core::Core()
-		:m_hwndHost(NULL)
+		:m_hwndHost(NULL),
+		m_atomicInt(0)
 	{}
 
 	Core::~Core()
@@ -108,8 +110,15 @@ namespace SentechCameraCore {
 				continue;
 			}
 
+			// <---------------------------------------------------------------------------------------------------------- Critical Section
+			while (m_atomicInt != 0);
+			m_atomicInt = 1;
+
 			m_streamBitmapRenderer.RegisterBitmapBuffer(&camera1Handler, pIStImage->GetImageBuffer(), frameWidth[0], frameHeight[0], nConvert);
 			m_streamBitmapRenderer.DrawOnce();
+			
+			m_atomicInt = 0;
+			// Critical Section ----------------------------------------------------------------------------------------------------------->
 		}
 
 		pIStDeviceList.AcquisitionStop();
@@ -169,6 +178,9 @@ namespace SentechCameraCore {
 
 	void Wrapper::Resize(int HostHeight, int hostWidth)
 	{
+		while (core->m_atomicInt != 0);
+		core->m_atomicInt = 1;
 		core->m_streamBitmapRenderer.Resize(hostWidth, HostHeight);
+		core->m_atomicInt = 0;
 	}
 }
