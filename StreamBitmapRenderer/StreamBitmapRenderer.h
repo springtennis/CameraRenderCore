@@ -8,6 +8,7 @@ struct DisplayInfo {
 	FLOAT lenX, lenY;
 	FLOAT dpiXScale, dpiYScale;
 	UINT zIndex;
+	UINT displayMode;
 };
 
 struct DisplayHandler {

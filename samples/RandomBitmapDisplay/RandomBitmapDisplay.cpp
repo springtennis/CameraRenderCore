@@ -74,8 +74,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
     // Create Bitmap streamer
     hr = g_streamBitmapRenderer.InitInstance(g_hwnd);
-    DisplayInfo display1Info = { 0.0f, 0.0f, 1.0f, 0.5f, dpiXScale, dpiYScale, 0 };
-    DisplayInfo display2Info = { 0.2f, 0.2f, 0.5f, 0.5f, dpiXScale, dpiYScale, 1 };
+    DisplayInfo display1Info = { 0.0f, 0.0f, 1.0f, 0.5f, dpiXScale, dpiYScale, 0, BitmapRenderer::Frame_DisplayModeCrop };
+    DisplayInfo display2Info = { 0.2f, 0.2f, 0.5f, 0.5f, dpiXScale, dpiYScale, 1, BitmapRenderer::Frame_DisplayModeCrop };
     DisplayHandler display1 = g_streamBitmapRenderer.RegisterBitmapRenderer(display1Info);
     DisplayHandler display2 = g_streamBitmapRenderer.RegisterBitmapRenderer(display2Info);
 

@@ -67,7 +67,8 @@ DisplayHandler StreamBitmapRenderer::RegisterBitmapRenderer(DisplayInfo displayI
 		displayInfo.lenX,
 		displayInfo.lenY,
 		displayInfo.dpiXScale,
-		displayInfo.dpiYScale
+		displayInfo.dpiYScale,
+		displayInfo.displayMode
 	);
 
 	DisplayHandler displayHandler = { pBitmapRenderer, displayInfo };
@@ -111,7 +112,8 @@ HRESULT StreamBitmapRenderer::ModifyBitmapRenderer(DisplayHandler* displayHandle
 		newDisplayInfo.startX,
 		newDisplayInfo.startY,
 		newDisplayInfo.lenX,
-		newDisplayInfo.lenY
+		newDisplayInfo.lenY,
+		newDisplayInfo.displayMode
 	);
 
 	*displayHandler = *it;

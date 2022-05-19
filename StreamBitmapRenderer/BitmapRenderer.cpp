@@ -6,6 +6,7 @@
 BitmapRenderer::BitmapRenderer() :
     m_startX(0), m_startY(0),
     m_lenX(0), m_lenY(0),
+    m_displayMode(1),
     m_dpiXScale(1.0f), m_dpiYScale(1.0f),
     m_pBitmap(NULL),
     m_pRenderTarget(NULL),
@@ -27,7 +28,8 @@ HRESULT BitmapRenderer::InitInstance(
     ID2D1HwndRenderTarget* pRenderTarge,
     FLOAT startX, FLOAT startY,
     FLOAT lenX, FLOAT lenY,
-    FLOAT dpiXScale, FLOAT dpiYScale)
+    FLOAT dpiXScale, FLOAT dpiYScale,
+    UINT displayMode)
 {
     m_pRenderTarget = pRenderTarge;
 
@@ -40,6 +42,8 @@ HRESULT BitmapRenderer::InitInstance(
     m_dpiXScale = dpiXScale;
     m_dpiYScale = dpiYScale;
 
+    m_displayMode = displayMode;
+
     m_pInputMat = new cv::Mat();
     m_pOutputMat = new cv::Mat();
 
@@ -48,7 +52,8 @@ HRESULT BitmapRenderer::InitInstance(
 
 HRESULT BitmapRenderer::ChangeDisplayArea(
     FLOAT startX, FLOAT startY,
-    FLOAT lenX, FLOAT lenY)
+    FLOAT lenX, FLOAT lenY,
+    UINT displayMode)
 {
     HRESULT hr = S_OK;
 
@@ -60,6 +65,8 @@ HRESULT BitmapRenderer::ChangeDisplayArea(
 
     m_lenX = lenX;
     m_lenY = lenY;
+
+    m_displayMode = displayMode;
 
     return hr;
 }
@@ -146,10 +153,10 @@ HRESULT BitmapRenderer::Debayering(
     int nConvert = 0;
 
     switch (bayerType) {
-        case Frame_BayerRG: nConvert = cv::COLOR_BayerRG2RGBA;	break;
-        case(Frame_BayerGR): nConvert = cv::COLOR_BayerGR2RGBA;	break;
-        case(Frame_BayerGB): nConvert = cv::COLOR_BayerGB2RGBA;	break;
-        case(Frame_BayerBG): nConvert = cv::COLOR_BayerBG2RGBA;	break;
+        case Frame_BayerRG : nConvert = cv::COLOR_BayerRG2RGBA;	break;
+        case Frame_BayerGR : nConvert = cv::COLOR_BayerGR2RGBA;	break;
+        case Frame_BayerGB : nConvert = cv::COLOR_BayerGB2RGBA;	break;
+        case Frame_BayerBG : nConvert = cv::COLOR_BayerBG2RGBA;	break;
         default:
             return E_FAIL;
     }
@@ -203,30 +210,47 @@ HRESULT BitmapRenderer::Update()
     float translateX = x + (a - w) / 2;
     float translateY = y + (b - h) / 2;
 
-    float tex_x1, tex_x2;
-    float tex_y1, tex_y2;
+    D2D1_RECT_F rectDisplay = D2D1::RectF(0, 0, w, h);
 
-    if (R > r)
+    if (m_displayMode == Frame_DisplayModeCrop)
     {
-        scale = a / w;
-        tex_x1 = 0.0f;
-        tex_y1 = 0.5f * (1.0f - r / R);
-        tex_x2 = 1.0f;
-        tex_y2 = 0.5f * (1.0f + r / R);
-    }
-    else
-    {
-        tex_x1 = 0.5f * (1.0f - R / r);
-        tex_y1 = 0.0f;
-        tex_x2 = 0.5f * (1.0f + R / r);
-        tex_y2 = 1.0f;
-        scale = b / h;
-    }
+        float tex_x1, tex_x2;
+        float tex_y1, tex_y2;
 
-    tex_x1 *= w;
-    tex_x2 *= w;
-    tex_y1 *= h;
-    tex_y2 *= h;
+        if (R > r)
+        {
+            scale = a / w;
+            tex_x1 = 0.0f;
+            tex_y1 = 0.5f * (1.0f - r / R);
+            tex_x2 = 1.0f;
+            tex_y2 = 0.5f * (1.0f + r / R);
+        }
+        else
+        {
+            scale = b / h;
+            tex_x1 = 0.5f * (1.0f - R / r);
+            tex_y1 = 0.0f;
+            tex_x2 = 0.5f * (1.0f + R / r);
+            tex_y2 = 1.0f;
+        }
+
+        tex_x1 *= w;
+        tex_x2 *= w;
+        tex_y1 *= h;
+        tex_y2 *= h;
+
+        rectDisplay.left = tex_x1;
+        rectDisplay.right = tex_x2;
+        rectDisplay.top = tex_y1;
+        rectDisplay.bottom = tex_y2;
+    }
+    else if (m_displayMode == Frame_DisplayModeFit)
+    {
+        if (R > r)
+            scale = b / h;
+        else
+            scale = a / w;
+    }
 
     D2D1::Matrix3x2F trans_scale =
         D2D1::Matrix3x2F::Scale(
@@ -236,8 +260,6 @@ HRESULT BitmapRenderer::Update()
     D2D1::Matrix3x2F trans_move =
         D2D1::Matrix3x2F::Translation(
             D2D1::SizeF(translateX, translateY));
-
-    D2D1_RECT_F rectDisplay = D2D1::RectF(tex_x1, tex_y1, tex_x2, tex_y2);
 
     m_pRenderTarget->SetTransform(trans_scale * trans_move);
     m_pRenderTarget->FillRectangle(&rectDisplay, m_pBitmapBrush);

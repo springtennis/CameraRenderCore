@@ -10,6 +10,9 @@ public:
 	static const UINT Frame_BayerGB = 3;
 	static const UINT Frame_BayerBG = 4;
 
+	static const UINT Frame_DisplayModeFit = 0;
+	static const UINT Frame_DisplayModeCrop = 1;
+
 	BitmapRenderer();
 	~BitmapRenderer();
 
@@ -19,11 +22,13 @@ public:
 		ID2D1HwndRenderTarget* pRenderTarge,
 		FLOAT startX, FLOAT startY,
 		FLOAT lenX, FLOAT lenY,
-		FLOAT dpiX, FLOAT dpiY);
+		FLOAT dpiX, FLOAT dpiY,
+		UINT displayMode);
 
 	HRESULT ChangeDisplayArea(
 		FLOAT startX, FLOAT startY,
-		FLOAT lenX, FLOAT lenY);
+		FLOAT lenX, FLOAT lenY,
+		UINT displayMode);
 
 	HRESULT RegisterBuffer(void* pBuffer, UINT width, UINT height);
 	void GetBuffer(void** pBuffer, UINT* width, UINT* height);
@@ -44,6 +49,8 @@ private:
 	FLOAT m_startX, m_startY;
 	FLOAT m_lenX, m_lenY;
 	FLOAT m_dpiXScale, m_dpiYScale;
+
+	UINT m_displayMode;
 
 	void* m_pInputMat, *m_pOutputMat;
 };
