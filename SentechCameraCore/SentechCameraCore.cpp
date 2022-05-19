@@ -100,15 +100,15 @@ namespace SentechCameraCore {
 
 			int nConvert = 0;
 			switch (pIStPixelFormatInfo->GetPixelColorFilter()){
-			case(StPixelColorFilter_BayerRG): nConvert = BitmapRenderer::Frame_BayerRG;	break;
-			case(StPixelColorFilter_BayerGR): nConvert = BitmapRenderer::Frame_BayerGR;	break;
-			case(StPixelColorFilter_BayerGB): nConvert = BitmapRenderer::Frame_BayerGB;	break;
-			case(StPixelColorFilter_BayerBG): nConvert = BitmapRenderer::Frame_BayerBG;	break;
+			case(StPixelColorFilter_BayerRG): nConvert = StreamBitmapRenderer::BITMAP_BAYER_RG;	break;
+			case(StPixelColorFilter_BayerGR): nConvert = StreamBitmapRenderer::BITMAP_BAYER_GR;	break;
+			case(StPixelColorFilter_BayerGB): nConvert = StreamBitmapRenderer::BITMAP_BAYER_GB;	break;
+			case(StPixelColorFilter_BayerBG): nConvert = StreamBitmapRenderer::BITMAP_BAYER_BG;	break;
 			default:
 				continue;
 			}
 
-			m_streamBitmapRenderer.RegisterBayerBitmapBuffer(&camera1Handler, nConvert, pIStImage->GetImageBuffer(), frameWidth[0], frameHeight[0]);
+			m_streamBitmapRenderer.RegisterBitmapBuffer(&camera1Handler, pIStImage->GetImageBuffer(), frameWidth[0], frameHeight[0], nConvert);
 			m_streamBitmapRenderer.DrawOnce();
 		}
 

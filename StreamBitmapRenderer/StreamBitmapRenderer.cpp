@@ -85,36 +85,40 @@ HRESULT StreamBitmapRenderer::RegisterBitmapBuffer(
 	DisplayHandler* displayHandler,
 	void* pBuffer,
 	UINT width,
-	UINT height)
+	UINT height,
+	UINT bitmapType)
 {
 	if (!m_pRenderTarget || !displayHandler->pBitmapRenderer)
 		return E_FAIL;
 
-	if (!displayHandler->pBitmapRenderer->m_pBitmap)
-		return displayHandler->pBitmapRenderer->RegisterBuffer(pBuffer, width, height);
+	switch (bitmapType) {
+	case BITMAP_RGBA :
+		if (!displayHandler->pBitmapRenderer->m_pBitmap)
+			return displayHandler->pBitmapRenderer->RegisterBuffer(pBuffer, width, height);
+		break;
+
+	case BITMAP_BAYER_RG: case BITMAP_BAYER_GR: case BITMAP_BAYER_GB: case BITMAP_BAYER_BG:
+	{
+		void* outputBuffer = NULL;
+		UINT bayerType = 0;
+
+		switch (bitmapType) {
+		case BITMAP_BAYER_RG: bayerType = BitmapRenderer::Frame_BayerRG; break;
+		case BITMAP_BAYER_GR: bayerType = BitmapRenderer::Frame_BayerGR; break;
+		case BITMAP_BAYER_GB: bayerType = BitmapRenderer::Frame_BayerGB; break;
+		case BITMAP_BAYER_BG: bayerType = BitmapRenderer::Frame_BayerBG; break;
+		}
+
+		HRESULT hr = displayHandler->pBitmapRenderer->Debayering(bayerType, pBuffer, &outputBuffer, width, height);
+		if (FAILED(hr))
+			return hr;
+
+		return displayHandler->pBitmapRenderer->RegisterBuffer(outputBuffer, width, height);
+	}
+		break;
+	}
 
 	return E_FAIL;
-}
-
-HRESULT StreamBitmapRenderer::RegisterBayerBitmapBuffer(
-	DisplayHandler* displayHandler,
-	UINT bayerType,
-	void* pBuffer,
-	UINT width,
-	UINT height)
-{
-	HRESULT hr = S_OK;
-
-	if (!m_pRenderTarget || !displayHandler->pBitmapRenderer)
-		return E_FAIL;
-
-	void* outputBuffer = NULL;
-	hr = displayHandler->pBitmapRenderer->Debayering(bayerType, pBuffer, &outputBuffer, width, height);
-
-	if (FAILED(hr))
-		return hr;
-
-	return displayHandler->pBitmapRenderer->RegisterBuffer(outputBuffer, width, height);
 }
 
 void StreamBitmapRenderer::Resize(UINT width, UINT height)

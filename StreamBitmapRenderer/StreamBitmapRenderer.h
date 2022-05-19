@@ -25,7 +25,12 @@ private:
 	std::vector<DisplayHandler> m_DisplayHandler;
 
 public:
-
+	static const UINT BITMAP_RGBA = 0;
+	static const UINT BITMAP_BAYER_RG = 1;
+	static const UINT BITMAP_BAYER_GR = 2;
+	static const UINT BITMAP_BAYER_GB = 3;
+	static const UINT BITMAP_BAYER_BG = 4;
+	
 	StreamBitmapRenderer();
 	~StreamBitmapRenderer();
 
@@ -37,14 +42,8 @@ public:
 		DisplayHandler* displayHandler,
 		void* pBuffer,
 		UINT width,
-		UINT height);
-
-	HRESULT RegisterBayerBitmapBuffer(
-		DisplayHandler* displayHandler,
-		UINT bayerType,
-		void* pBuffer,
-		UINT width,
-		UINT height);
+		UINT height,
+		UINT bitmapType);
 
 	void Resize(UINT width, UINT height);
 	void DrawOnce();
