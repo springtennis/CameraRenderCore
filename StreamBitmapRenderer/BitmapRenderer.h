@@ -21,6 +21,10 @@ public:
 		FLOAT lenX, FLOAT lenY,
 		FLOAT dpiX, FLOAT dpiY);
 
+	HRESULT ChangeDisplayArea(
+		FLOAT startX, FLOAT startY,
+		FLOAT lenX, FLOAT lenY);
+
 	HRESULT RegisterBuffer(void* pBuffer, UINT width, UINT height);
 	void GetBuffer(void** pBuffer, UINT* width, UINT* height);
 

@@ -46,6 +46,24 @@ HRESULT BitmapRenderer::InitInstance(
     return S_OK;
 }
 
+HRESULT BitmapRenderer::ChangeDisplayArea(
+    FLOAT startX, FLOAT startY,
+    FLOAT lenX, FLOAT lenY)
+{
+    HRESULT hr = S_OK;
+
+    if (!m_pRenderTarget)
+        return E_FAIL;
+
+    m_startX = startX;
+    m_startY = startY;
+
+    m_lenX = lenX;
+    m_lenY = lenY;
+
+    return hr;
+}
+
 HRESULT BitmapRenderer::RegisterBuffer(void* pBuffer, UINT width, UINT height)
 {
     HRESULT hr = S_OK;
