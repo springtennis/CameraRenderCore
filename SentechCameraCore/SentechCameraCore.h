@@ -11,6 +11,15 @@
 using namespace System;
 
 namespace SentechCameraCore {
+
+	struct CameraHandler {
+		size_t frameWidth;
+		size_t frameHeight;
+		float maxFps;
+
+		DisplayHandler displayHandler;
+	};
+
 	public class Core
 	{
 	private:
@@ -20,13 +29,14 @@ namespace SentechCameraCore {
 		float m_dpiXScale;
 		float m_dpiYScale;
 
-
 	public:
 		HWND m_hwndHost;
 		StreamBitmapRenderer m_streamBitmapRenderer;
 		Mp4Recorder* mp4Recorder;
 
 		std::atomic<int> m_atomicInt;
+		UINT m_cameraCount;
+		std::vector<CameraHandler> m_CameraHandler;
 
 		Core();
 		~Core();
@@ -58,5 +68,7 @@ namespace SentechCameraCore {
 			void* hwndParent);
 
 		void Resize(int HostHeight, int hostWidth);
+		UINT GetCameraCount();
+		void SetDisplayInfo(UINT cameraIdx, float startX, float startY, float lenX, float lenY, int zIndex, UINT displayMode);
 	};
 }

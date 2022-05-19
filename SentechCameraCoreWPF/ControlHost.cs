@@ -46,14 +46,27 @@ namespace SentechCameraCoreWPF
         protected override IntPtr WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
         {
             handled = false;
-            if(msg == 0x0005) // WM_SIZE
+            switch (msg)
             {
-                m_hostWidth = unchecked((short)lParam);
-                m_hostHeight = unchecked((short)((uint)lParam >> 16));
-                m_sentechCameraCore.Resize(m_hostHeight, m_hostWidth);
-                handled = true;
+                case 0x0005: // WM_SIZE
+                    m_hostWidth = unchecked((short)lParam);
+                    m_hostHeight = unchecked((short)((uint)lParam >> 16));
+                    m_sentechCameraCore.Resize(m_hostHeight, m_hostWidth);
+                    handled = true;
+                    break;
             }
+
             return IntPtr.Zero;
+        }
+
+        public uint GetCameraCount()
+        {
+            return m_sentechCameraCore.GetCameraCount();
+        }
+
+        public void SetDisplayInfo(uint targetCamera, float startX, float startY, float lenX, float lenY, int zIndex, uint displayMode)
+        {
+            m_sentechCameraCore.SetDisplayInfo(targetCamera, startX, startY, lenX, lenY, zIndex, displayMode);
         }
 
         protected override void DestroyWindowCore(HandleRef hwnd)

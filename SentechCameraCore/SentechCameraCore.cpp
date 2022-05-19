@@ -16,7 +16,8 @@ namespace SentechCameraCore {
 	
 	Core::Core()
 		:m_hwndHost(NULL),
-		m_atomicInt(0)
+		m_atomicInt(-1),
+		m_cameraCount(0)
 	{}
 
 	Core::~Core()
@@ -29,8 +30,19 @@ namespace SentechCameraCore {
 	{
 		loopEnd = 0;
 
-		vector<size_t> frameWidth;
-		vector<size_t> frameHeight;
+		///////////////////////////////////
+		// [[ Set StreamBitmapRenderer ]]
+		///////////////////////////////////
+		HRESULT hr = S_OK;
+		DisplayInfo defaultDisplayInfo = {
+			0.0f, 0.0f, // startX, startY
+			1.0f, 1.0f, // lenX, lenY
+			m_dpiXScale, m_dpiYScale, // dpiXScale, dpiYScale
+			0, // zIndex
+			BitmapRenderer::Frame_DisplayModeNone // displayMode
+		};
+
+		hr = m_streamBitmapRenderer.InitInstance(m_hwndHost);
 
 		///////////////////////////////////
 		// [[ Init STApi Camera ]]
@@ -41,7 +53,7 @@ namespace SentechCameraCore {
 		CIStDataStreamPtrArray pIStDataStreamList;
 
 		// Try to connect to all possible device
-		int i = 0;
+		m_cameraCount = 0;
 		while (1) {
 			IStDeviceReleasable* pIStDeviceReleasable = NULL;
 			try {
@@ -54,30 +66,27 @@ namespace SentechCameraCore {
 			pIStDeviceList.Register(pIStDeviceReleasable);
 
 			// Set & Get basic camera info
-			GenApi::INodeMap* pINodeMap = pIStDeviceList[i]->GetRemoteIStPort()->GetINodeMap();
+			GenApi::INodeMap* pINodeMap = pIStDeviceList[m_cameraCount]->GetRemoteIStPort()->GetINodeMap();
 			GenApi::CFloatPtr(GetCNodePtr("AcquisitionFrameRate", pINodeMap))->SetValue(FPS);
 
-			frameWidth.push_back((size_t)GenApi::CIntegerPtr(GetCNodePtr("Width", pINodeMap))->GetValue());
-			frameHeight.push_back((size_t)GenApi::CIntegerPtr(GetCNodePtr("Height", pINodeMap))->GetValue());
+			size_t frameWidth = (size_t)GenApi::CIntegerPtr(GetCNodePtr("Width", pINodeMap))->GetValue();
+			size_t frameHeight = (size_t)GenApi::CIntegerPtr(GetCNodePtr("Height", pINodeMap))->GetValue();
 			float fps = GenApi::CFloatPtr(GetCNodePtr("AcquisitionFrameRate", pINodeMap))->GetValue();
+			
+			DisplayHandler defaultDisplayHandler = m_streamBitmapRenderer.RegisterBitmapRenderer(defaultDisplayInfo);
+			m_CameraHandler.push_back({ frameWidth, frameHeight, fps, defaultDisplayHandler });
+
 			pIStDataStreamList.Register(pIStDeviceReleasable->CreateIStDataStream(0));
-			i++;
+			m_cameraCount++;
 		}
-
-		///////////////////////////////////
-		// [[ Set StreamBitmapRenderer ]]
-		///////////////////////////////////
-
-		// Init StreamBitmapRenderer
-		HRESULT hr = S_OK;
-		hr = m_streamBitmapRenderer.InitInstance(m_hwndHost);
-		DisplayHandler camera1Handler = m_streamBitmapRenderer.RegisterBitmapRenderer({0.0f, 0.0f, 1.0f, 1.0f, m_dpiXScale , m_dpiYScale, 1, BitmapRenderer::Frame_DisplayModeFit});
 
 		///////////////////////////////////
 		// [[ Start Capter & display ]]
 		///////////////////////////////////
 		pIStDataStreamList.StartAcquisition(GENTL_INFINITE);
 		pIStDeviceList.AcquisitionStart();
+
+		m_atomicInt = 0; // Init finish
 
 		while (available)
 		{
@@ -114,7 +123,25 @@ namespace SentechCameraCore {
 			while (m_atomicInt != 0);
 			m_atomicInt = 1;
 
-			m_streamBitmapRenderer.RegisterBitmapBuffer(&camera1Handler, pIStImage->GetImageBuffer(), frameWidth[0], frameHeight[0], nConvert);
+			// Find camera device
+			int idx;
+			for (idx = 0; idx < m_cameraCount; idx++)
+				if (pIStDevice == pIStDeviceList[idx]) break;
+			
+			if (idx == m_cameraCount)
+			{
+				m_atomicInt = 0;
+				continue;
+			}
+
+			CameraHandler* targetCameraHandler = &m_CameraHandler[idx];
+			m_streamBitmapRenderer.RegisterBitmapBuffer(
+				&targetCameraHandler->displayHandler,
+				pIStImage->GetImageBuffer(),
+				targetCameraHandler->frameWidth,
+				targetCameraHandler->frameHeight,
+				nConvert);
+
 			m_streamBitmapRenderer.DrawOnce();
 			
 			m_atomicInt = 0;
@@ -181,6 +208,39 @@ namespace SentechCameraCore {
 		while (core->m_atomicInt != 0);
 		core->m_atomicInt = 1;
 		core->m_streamBitmapRenderer.Resize(hostWidth, HostHeight);
+		core->m_atomicInt = 0;
+	}
+
+	UINT Wrapper::GetCameraCount()
+	{
+		return core->m_cameraCount;
+	}
+
+	void Wrapper::SetDisplayInfo(UINT cameraIdx, float startX, float startY, float lenX, float lenY, int zIndex, UINT displayMode)
+	{
+		while (core->m_atomicInt != 0);
+		core->m_atomicInt = 1;
+		
+		if (cameraIdx >= core->m_cameraCount)
+		{
+			core->m_atomicInt = 0;
+			return;
+		}
+
+		DisplayInfo newDisplayInfo;
+		newDisplayInfo.startX = startX;
+		newDisplayInfo.startY = startY;
+		newDisplayInfo.lenX = lenX;
+		newDisplayInfo.lenY = lenY;
+		newDisplayInfo.dpiXScale = core->m_CameraHandler[cameraIdx].displayHandler.displayInfo.dpiXScale;
+		newDisplayInfo.dpiYScale = core->m_CameraHandler[cameraIdx].displayHandler.displayInfo.dpiYScale;
+		newDisplayInfo.zIndex = zIndex;
+		newDisplayInfo.displayMode = displayMode;
+
+		core->m_streamBitmapRenderer.ModifyBitmapRenderer(
+			&core->m_CameraHandler[cameraIdx].displayHandler,
+			newDisplayInfo);
+		
 		core->m_atomicInt = 0;
 	}
 }
