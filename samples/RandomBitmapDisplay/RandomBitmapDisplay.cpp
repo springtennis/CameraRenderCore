@@ -74,8 +74,10 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
     // Create Bitmap streamer
     hr = g_streamBitmapRenderer.InitInstance(g_hwnd);
-    DisplayHandler display1 = g_streamBitmapRenderer.RegisterBitmapRenderer({ 0.0f, 0.0f, 1.0f, 0.5f, dpiXScale, dpiYScale, 0 });
-    DisplayHandler display2 = g_streamBitmapRenderer.RegisterBitmapRenderer({ 0.2f, 0.2f, 0.5f, 0.5f, dpiXScale, dpiYScale, 1 });
+    DisplayInfo display1Info = { 0.0f, 0.0f, 1.0f, 0.5f, dpiXScale, dpiYScale, 0 };
+    DisplayInfo display2Info = { 0.2f, 0.2f, 0.5f, 0.5f, dpiXScale, dpiYScale, 1 };
+    DisplayHandler display1 = g_streamBitmapRenderer.RegisterBitmapRenderer(display1Info);
+    DisplayHandler display2 = g_streamBitmapRenderer.RegisterBitmapRenderer(display2Info);
 
     // Pseudo bitmap image in memory
     UINT b1_width = 20;
@@ -94,6 +96,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
     // Loop
     MSG msg = { 0 };
+    UINT loopCnt = 0;
     std::chrono::system_clock::time_point start = std::chrono::system_clock::now();
     while (msg.message != WM_QUIT)
     {
@@ -112,6 +115,34 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
             randomBitmap(b1_buffer, b1_width, b1_height);
             randomBitmap(b2_buffer, b2_width, b2_height);
             g_streamBitmapRenderer.DrawOnce();
+
+            // Change display layout dynamically
+            loopCnt++;
+            if (loopCnt == 10)
+            {
+                loopCnt = 0;
+
+                std::random_device rd;
+                std::mt19937 gen(rd());
+                std::uniform_int_distribution<int>dis(0, 500);
+
+                INT zIndexTmp = display1Info.zIndex;
+                display1Info.zIndex = display2Info.zIndex;
+                display2Info.zIndex = zIndexTmp;
+
+                display1Info.startX = (float)dis(gen) / 500.0f;
+                display1Info.startY = (float)dis(gen) / 500.0f;
+                display1Info.lenX = (float)dis(gen) / 500.0f;
+                display1Info.lenY = (float)dis(gen) / 500.0f;
+
+                display2Info.startX = (float)dis(gen) / 500.0f;
+                display2Info.startY = (float)dis(gen) / 500.0f;
+                display2Info.lenX = (float)dis(gen) / 500.0f;
+                display2Info.lenY = (float)dis(gen) / 500.0f;
+
+                g_streamBitmapRenderer.ModifyBitmapRenderer(&display1, display1Info);
+                g_streamBitmapRenderer.ModifyBitmapRenderer(&display2, display2Info);
+            }
         }
     }
 
