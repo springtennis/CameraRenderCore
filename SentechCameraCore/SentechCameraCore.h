@@ -18,6 +18,8 @@ namespace SentechCameraCore {
 		float maxFps;
 
 		DisplayHandler displayHandler;
+		char* buffer;
+		size_t frameCount;
 	};
 
 	public class Core

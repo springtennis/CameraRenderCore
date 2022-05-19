@@ -5,11 +5,12 @@
 #include <vector>
 #include <thread>
 #include <mutex>
+#include <chrono>
 
 using namespace StApi;
 using namespace std;
 
-#define FPS     60
+#define FPS     280
 #define GetCNodePtr(x, nodeMap)	GenApi::CNodePtr(nodeMap->GetNode(x))
 
 namespace SentechCameraCore {
@@ -74,7 +75,8 @@ namespace SentechCameraCore {
 			float fps = GenApi::CFloatPtr(GetCNodePtr("AcquisitionFrameRate", pINodeMap))->GetValue();
 			
 			DisplayHandler defaultDisplayHandler = m_streamBitmapRenderer.RegisterBitmapRenderer(defaultDisplayInfo);
-			m_CameraHandler.push_back({ frameWidth, frameHeight, fps, defaultDisplayHandler });
+			char* rawBuffer = new char[frameWidth * frameHeight];
+			m_CameraHandler.push_back({ frameWidth, frameHeight, fps, defaultDisplayHandler, rawBuffer, 0 });
 
 			pIStDataStreamList.Register(pIStDeviceReleasable->CreateIStDataStream(0));
 			m_cameraCount++;
@@ -88,8 +90,12 @@ namespace SentechCameraCore {
 
 		m_atomicInt = 0; // Init finish
 
+		std::chrono::system_clock::time_point start = std::chrono::system_clock::now();
 		while (available)
 		{
+			std::chrono::system_clock::time_point current = std::chrono::system_clock::now();
+			std::chrono::duration<double>sec = current - start;
+
 			// Get Camera frame
 			CIStStreamBufferPtr pIStStreamBuffer(pIStDataStreamList.RetrieveBuffer(5000));
 			if (!pIStStreamBuffer->GetIStStreamBufferInfo()->IsImagePresent())
@@ -119,31 +125,47 @@ namespace SentechCameraCore {
 				continue;
 			}
 
-			// <---------------------------------------------------------------------------------------------------------- Critical Section
-			while (m_atomicInt != 0);
-			m_atomicInt = 1;
-
 			// Find camera device
 			int idx;
 			for (idx = 0; idx < m_cameraCount; idx++)
 				if (pIStDevice == pIStDeviceList[idx]) break;
-			
+
 			if (idx == m_cameraCount)
-			{
-				m_atomicInt = 0;
 				continue;
-			}
 
 			CameraHandler* targetCameraHandler = &m_CameraHandler[idx];
-			m_streamBitmapRenderer.RegisterBitmapBuffer(
-				&targetCameraHandler->displayHandler,
+			targetCameraHandler->frameCount++;
+			memcpy(
+				targetCameraHandler->buffer,
 				pIStImage->GetImageBuffer(),
-				targetCameraHandler->frameWidth,
-				targetCameraHandler->frameHeight,
-				nConvert);
+				targetCameraHandler->frameWidth * targetCameraHandler->frameHeight
+			);
 
-			m_streamBitmapRenderer.DrawOnce();
-			
+			// If not last device, then skip
+			if (pIStDevice != pIStDeviceList[m_cameraCount - 1])
+				continue;
+
+			// <---------------------------------------------------------------------------------------------------------- Critical Section
+			while (m_atomicInt != 0);
+			m_atomicInt = 1;
+
+			std::vector<CameraHandler>::iterator it;
+			for (it = m_CameraHandler.begin(); it != m_CameraHandler.end(); it++)
+			{
+				m_streamBitmapRenderer.RegisterBitmapBuffer(
+					&it->displayHandler,
+					it->buffer,
+					it->frameWidth,
+					it->frameHeight,
+					nConvert);
+			}
+
+			if (sec.count() > 0.034)
+			{
+				start = current;
+				m_streamBitmapRenderer.DrawOnce();
+			}
+
 			m_atomicInt = 0;
 			// Critical Section ----------------------------------------------------------------------------------------------------------->
 		}
