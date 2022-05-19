@@ -89,8 +89,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     ZeroMemory(b2_buffer, b2_width * b2_height * 4);
 
     // Register buffer
-    g_streamBitmapRenderer.RegisterBitmapBuffer(&display1, b1_buffer, b1_width, b1_height);
-    g_streamBitmapRenderer.RegisterBitmapBuffer(&display2, b2_buffer, b2_width, b2_height);
+    g_streamBitmapRenderer.RegisterBitmapBuffer(&display1, b1_buffer, b1_width, b1_height, StreamBitmapRenderer::BITMAP_RGBA);
+    g_streamBitmapRenderer.RegisterBitmapBuffer(&display2, b2_buffer, b2_width, b2_height, StreamBitmapRenderer::BITMAP_RGBA);
 
     // Loop
     MSG msg = { 0 };
