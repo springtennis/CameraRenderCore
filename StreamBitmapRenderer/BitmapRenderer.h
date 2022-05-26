@@ -18,6 +18,7 @@ public:
 	~BitmapRenderer();
 
 	ID2D1Bitmap* m_pBitmap;
+	void* m_pBitmapBuffer;
 
 	HRESULT InitInstance(
 		ID2D1HwndRenderTarget* pRenderTarge,
@@ -43,7 +44,6 @@ public:
 		UINT height);
 
 private:
-	void* m_pBitmapBuffer;
 	ID2D1BitmapBrush* m_pBitmapBrush;
 	ID2D1HwndRenderTarget* m_pRenderTarget;
 

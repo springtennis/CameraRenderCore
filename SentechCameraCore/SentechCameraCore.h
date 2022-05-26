@@ -20,6 +20,9 @@ namespace SentechCameraCore {
 		DisplayHandler displayHandler;
 		char* buffer;
 		size_t frameCount;
+
+		char filepath[256];
+		Mp4Recorder* recorder;
 	};
 
 	public class Core
@@ -32,6 +35,11 @@ namespace SentechCameraCore {
 		float m_dpiYScale;
 
 	public:
+		static const UINT REC_STOPPED = 0;
+		static const UINT REC_STARTED = 1;
+		static const UINT REC_RECORDING = 2;
+		static const UINT REC_STOPPING = 3;
+
 		HWND m_hwndHost;
 		StreamBitmapRenderer m_streamBitmapRenderer;
 		Mp4Recorder* mp4Recorder;
@@ -39,6 +47,8 @@ namespace SentechCameraCore {
 		std::atomic<int> m_atomicInt;
 		UINT m_cameraCount;
 		std::vector<CameraHandler> m_CameraHandler;
+
+		UINT m_recordState;
 
 		Core();
 		~Core();
@@ -49,7 +59,7 @@ namespace SentechCameraCore {
 			float dpiXScale,
 			float dpiYScale,
 			void* hwndParent);
-
+		void SetRecordInfo(UINT cameraIdx, char* filepath);
 		void loop();
 	};
 
@@ -72,5 +82,9 @@ namespace SentechCameraCore {
 		void Resize(int HostHeight, int hostWidth);
 		UINT GetCameraCount();
 		void SetDisplayInfo(UINT cameraIdx, float startX, float startY, float lenX, float lenY, int zIndex, UINT displayMode);
+
+		void SetRecordInfo(UINT cameraIdx, char* filepath);
+		void StartRecord();
+		void StopRecord();
 	};
 }

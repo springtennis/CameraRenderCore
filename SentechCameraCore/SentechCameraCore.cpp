@@ -10,7 +10,7 @@
 using namespace StApi;
 using namespace std;
 
-#define FPS     280
+#define FPS     60
 #define GetCNodePtr(x, nodeMap)	GenApi::CNodePtr(nodeMap->GetNode(x))
 
 namespace SentechCameraCore {
@@ -18,7 +18,8 @@ namespace SentechCameraCore {
 	Core::Core()
 		:m_hwndHost(NULL),
 		m_atomicInt(-1),
-		m_cameraCount(0)
+		m_cameraCount(0),
+		m_recordState(0)
 	{}
 
 	Core::~Core()
@@ -76,7 +77,7 @@ namespace SentechCameraCore {
 			
 			DisplayHandler defaultDisplayHandler = m_streamBitmapRenderer.RegisterBitmapRenderer(defaultDisplayInfo);
 			char* rawBuffer = new char[frameWidth * frameHeight];
-			m_CameraHandler.push_back({ frameWidth, frameHeight, fps, defaultDisplayHandler, rawBuffer, 0 });
+			m_CameraHandler.push_back({ frameWidth, frameHeight, fps, defaultDisplayHandler, rawBuffer, 0, {}, NULL });
 
 			pIStDataStreamList.Register(pIStDeviceReleasable->CreateIStDataStream(0));
 			m_cameraCount++;
@@ -160,6 +161,61 @@ namespace SentechCameraCore {
 					nConvert);
 			}
 
+			switch (m_recordState) {
+			case REC_STOPPED:
+				break;
+
+			case REC_STARTED:
+				{
+					std::vector<CameraHandler>::iterator it;
+					for (it = m_CameraHandler.begin(); it != m_CameraHandler.end(); it++)
+					{
+						if (!it->recorder) 
+						{
+							it->recorder = new Mp4Recorder(
+								it->filepath,
+								it->frameWidth,
+								it->frameHeight,
+								it->maxFps
+							);
+
+							it->recorder->init();
+							it->recorder->start();
+						}
+					}
+				}
+				m_recordState = REC_RECORDING;
+				break;
+
+			case REC_RECORDING:
+				{
+					std::vector<CameraHandler>::iterator it;
+					for (it = m_CameraHandler.begin(); it != m_CameraHandler.end(); it++)
+					{
+						if (it->recorder)
+							it->recorder->put(it->displayHandler.pBitmapRenderer->m_pBitmapBuffer);
+					}
+				}
+				break;
+
+			case REC_STOPPING:
+				{
+					std::vector<CameraHandler>::iterator it;
+					for (it = m_CameraHandler.begin(); it != m_CameraHandler.end(); it++)
+					{
+						if (it->recorder)
+						{
+							it->recorder->end();
+							delete it->recorder;
+							it->recorder = NULL;
+							it->filepath[0] = '\0';
+						}
+					}
+				}
+				m_recordState = REC_STOPPED;
+				break;
+			}
+
 			if (sec.count() > 0.034)
 			{
 				start = current;
@@ -174,6 +230,11 @@ namespace SentechCameraCore {
 		pIStDataStreamList.StopAcquisition();
 
 		loopEnd = 1;
+	}
+
+	void Core::SetRecordInfo(UINT cameraIdx, char* filepath)
+	{
+		strcpy(m_CameraHandler[cameraIdx].filepath, filepath);
 	}
 
 	IntPtr Core::Init(
@@ -263,6 +324,40 @@ namespace SentechCameraCore {
 			&core->m_CameraHandler[cameraIdx].displayHandler,
 			newDisplayInfo);
 		
+		core->m_atomicInt = 0;
+	}
+
+	void Wrapper::SetRecordInfo(UINT cameraIdx, char* filepath)
+	{
+		while (core->m_atomicInt != 0);
+		core->m_atomicInt = 1;
+
+		if (cameraIdx >= core->m_cameraCount)
+		{
+			core->m_atomicInt = 0;
+			return;
+		}
+
+		core->SetRecordInfo(cameraIdx, filepath);
+
+		core->m_atomicInt = 0;
+	}
+
+	void Wrapper::StartRecord()
+	{
+		while (core->m_atomicInt != 0);
+		core->m_atomicInt = 1;
+		if(core->m_recordState == Core::REC_STOPPED)
+			core->m_recordState = Core::REC_STARTED;
+		core->m_atomicInt = 0;
+	}
+
+	void Wrapper::StopRecord()
+	{
+		while (core->m_atomicInt != 0);
+		core->m_atomicInt = 1;
+		if(core->m_recordState == Core::REC_RECORDING)
+			core->m_recordState = Core::REC_STOPPING;
 		core->m_atomicInt = 0;
 	}
 }

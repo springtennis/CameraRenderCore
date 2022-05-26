@@ -2,6 +2,7 @@
 
 using System;
 using System.Runtime.InteropServices;
+using System.Text;
 using System.Windows.Interop;
 
 #endregion
@@ -68,6 +69,26 @@ namespace SentechCameraCoreWPF
         {
             m_sentechCameraCore.SetDisplayInfo(targetCamera, startX, startY, lenX, lenY, zIndex, displayMode);
         }
+        public void SetRecordInfo(uint targetCamera, string filepath)
+        {
+            byte[] b = Encoding.ASCII.GetBytes(filepath);
+            unsafe
+            {
+                fixed (byte* p = b)
+                {
+                    sbyte* sp = (sbyte*)p;
+                    m_sentechCameraCore.SetRecordInfo(targetCamera, sp);
+                }
+            }
+        }
+        public void StartRecord()
+        {
+            m_sentechCameraCore.StartRecord();
+        }
+        public void StopRecord()
+        {
+            m_sentechCameraCore.StopRecord();
+        }
 
         protected override void DestroyWindowCore(HandleRef hwnd)
         {
@@ -76,5 +97,6 @@ namespace SentechCameraCoreWPF
 
         [DllImport("user32.dll", EntryPoint = "DestroyWindow", CharSet = CharSet.Unicode)]
         internal static extern bool DestroyWindow(IntPtr hwnd);
+
     }
 }

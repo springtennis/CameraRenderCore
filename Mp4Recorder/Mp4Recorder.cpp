@@ -47,8 +47,6 @@ bool Mp4Recorder::init()
 	ret = avcodec_open2(c, codec, NULL);
 	if (ret < 0) // try "libx264rgb" codec
 	{
-		deInit();
-
 		codec = avcodec_find_encoder_by_name("libx264rgb");
 		if (!codec)
 			goto error;

@@ -30,5 +30,16 @@ namespace SimpleCameraStreamerWPF
             hwndSentechCamera.SetDisplayInfo(0, 0.0f, 0.0f, 0.5f, 1.0f, 0, 0);
         }
 
+        private void onRecordClick(object sender, RoutedEventArgs e)
+        {
+            string videoPath = Environment.GetFolderPath(Environment.SpecialFolder.MyVideos) + "\\test.mp4";
+            hwndSentechCamera.SetRecordInfo(0, videoPath);
+            hwndSentechCamera.StartRecord();
+        }
+
+        private void onStopClick(object sender, RoutedEventArgs e)
+        {
+            hwndSentechCamera.StopRecord();
+        }
     }
 }

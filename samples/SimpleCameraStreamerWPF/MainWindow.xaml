@@ -9,7 +9,9 @@
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="*" />
-            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
         
         <Border Name="ControlHostElement"
@@ -20,5 +22,11 @@
         <TextBlock Grid.Row="1">
             I'm WPF Object!
         </TextBlock>
+        <Button Grid.Row="2" Click="onRecordClick">
+            Record
+        </Button>
+        <Button Grid.Row="3" Click="onStopClick">
+            Record stop
+        </Button>
     </Grid>
 </Window>
