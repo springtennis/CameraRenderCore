@@ -170,18 +170,21 @@ namespace SentechCameraCore {
 					std::vector<CameraHandler>::iterator it;
 					for (it = m_CameraHandler.begin(); it != m_CameraHandler.end(); it++)
 					{
-						if (!it->recorder) 
+						if (it->recorder)
 						{
-							it->recorder = new Mp4Recorder(
-								it->filepath,
-								it->frameWidth,
-								it->frameHeight,
-								it->maxFps
-							);
-
-							it->recorder->init();
-							it->recorder->start();
+							it->recorder->end();
+							delete it->recorder;
 						}
+
+						it->recorder = new Mp4Recorder(
+							it->filepath,
+							it->frameWidth,
+							it->frameHeight,
+							it->maxFps
+						);
+
+						it->recorder->init();
+						it->recorder->start();
 					}
 				}
 				m_recordState = REC_RECORDING;
@@ -347,8 +350,7 @@ namespace SentechCameraCore {
 	{
 		while (core->m_atomicInt != 0);
 		core->m_atomicInt = 1;
-		if(core->m_recordState == Core::REC_STOPPED)
-			core->m_recordState = Core::REC_STARTED;
+		core->m_recordState = Core::REC_STARTED;
 		core->m_atomicInt = 0;
 	}
 
