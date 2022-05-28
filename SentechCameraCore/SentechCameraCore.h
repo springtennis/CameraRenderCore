@@ -28,17 +28,19 @@ namespace SentechCameraCore {
 	public class Core
 	{
 	private:
-		int available;
-		int loopEnd;
 
-		float m_dpiXScale;
-		float m_dpiYScale;
 
 	public:
 		static const UINT REC_STOPPED = 0;
 		static const UINT REC_STARTED = 1;
 		static const UINT REC_RECORDING = 2;
 		static const UINT REC_STOPPING = 3;
+
+		int available;
+		int loopEnd;
+
+		float m_dpiXScale;
+		float m_dpiYScale;
 
 		HWND m_hwndHost;
 		StreamBitmapRenderer m_streamBitmapRenderer;
@@ -47,6 +49,8 @@ namespace SentechCameraCore {
 		std::atomic<int> m_atomicInt;
 		UINT m_cameraCount;
 		std::vector<CameraHandler> m_CameraHandler;
+
+		std::atomic<bool> m_displayChange;
 
 		UINT m_recordState;
 
@@ -60,7 +64,6 @@ namespace SentechCameraCore {
 			float dpiYScale,
 			void* hwndParent);
 		void SetRecordInfo(UINT cameraIdx, char* filepath);
-		void loop();
 	};
 
 	public ref class Wrapper

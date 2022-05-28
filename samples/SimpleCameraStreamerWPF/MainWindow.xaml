@@ -12,6 +12,7 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
         
         <Border Name="ControlHostElement"
@@ -27,6 +28,9 @@
         </Button>
         <Button Grid.Row="3" Click="onStopClick">
             Record stop
+        </Button>
+        <Button Grid.Row="4" Click="onSwitchCameraClick">
+            Switch Camera
         </Button>
     </Grid>
 </Window>
