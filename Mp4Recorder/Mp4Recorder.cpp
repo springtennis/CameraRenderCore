@@ -41,7 +41,7 @@ bool Mp4Recorder::init()
 	c->gop_size = (int)(fps / 2);
 	c->max_b_frames = 2;
 	c->pix_fmt = AV_PIX_FMT_BGR0;
-	av_opt_set(c->priv_data, "preset", "p6", 0);
+	av_opt_set(c->priv_data, "preset", "p7", 0);
 	//av_opt_set_double(c->priv_data, "cq", 27, 0);
 
 	ret = avcodec_open2(c, codec, NULL);

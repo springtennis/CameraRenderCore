@@ -9,7 +9,7 @@
 using namespace StApi;
 using namespace std;
 
-#define FPS     240
+#define FPS     270
 #define GetCNodePtr(x, nodeMap)	GenApi::CNodePtr(nodeMap->GetNode(x))
 
 DWORD WINAPI mainThreadFunction(LPVOID lpParam)
@@ -188,17 +188,23 @@ DWORD WINAPI mainThreadFunction(LPVOID lpParam)
 						delete it->recorder;
 					}
 
-					it->recorder = new Mp4Recorder(
-						it->filepath,
-						it->frameWidth,
-						it->frameHeight,
-						it->maxFps
-					);
+					if (it->filepath[0] != '\0')
+					{
+						it->recorder = new Mp4Recorder(
+							it->filepath,
+							it->frameWidth,
+							it->frameHeight,
+							it->maxFps
+						);
 
-					it->recorder->init();
-					it->recorder->start();
+						it->recorder->init();
+						it->recorder->start();
+
+						it->filepath[0] = '\0'; // delete filepath after recorder start
+					}
 				}
 			}
+			PlaySound(L"C:\\Users\\Bluesink\\Music\\play.wav", NULL, SND_FILENAME | SND_ASYNC);
 			core->m_recordState = core->REC_RECORDING;
 			break;
 
