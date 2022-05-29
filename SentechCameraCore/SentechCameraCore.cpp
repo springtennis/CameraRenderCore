@@ -231,7 +231,7 @@ DWORD WINAPI mainThreadFunction(LPVOID lpParam)
 			break;
 			}
 
-			if (id % 6 == 0)
+			if (id % 10 == 0)
 			{
 				core->m_streamBitmapRenderer.DrawOnce();
 			}
