@@ -23,6 +23,7 @@ namespace SentechCameraCore {
 
 		char filepath[256];
 		Mp4Recorder* recorder;
+		UINT pixelFormat;
 	};
 
 	public class Core

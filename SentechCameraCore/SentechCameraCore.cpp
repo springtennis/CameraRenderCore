@@ -55,7 +55,11 @@ DWORD WINAPI mainThreadFunction(LPVOID lpParam)
 
 		// Set & Get basic camera info
 		GenApi::INodeMap* pINodeMap = pIStDeviceList[core->m_cameraCount]->GetRemoteIStPort()->GetINodeMap();
-		GenApi::CFloatPtr(GetCNodePtr("AcquisitionFrameRate", pINodeMap))->SetValue(FPS);
+		float fpsMax = GenApi::CFloatPtr(GetCNodePtr("AcquisitionFrameRate", pINodeMap))->GetMax();
+
+		// fps must be multiplication of 30
+		float fpsTarget = (int)(fpsMax / 30.0) * 30;
+		GenApi::CFloatPtr(GetCNodePtr("AcquisitionFrameRate", pINodeMap))->SetValue(fpsTarget);
 
 		size_t frameWidth = (size_t)GenApi::CIntegerPtr(GetCNodePtr("Width", pINodeMap))->GetValue();
 		size_t frameHeight = (size_t)GenApi::CIntegerPtr(GetCNodePtr("Height", pINodeMap))->GetValue();
@@ -63,7 +67,7 @@ DWORD WINAPI mainThreadFunction(LPVOID lpParam)
 
 		DisplayHandler defaultDisplayHandler = core->m_streamBitmapRenderer.RegisterBitmapRenderer(defaultDisplayInfo);
 		char* rawBuffer = new char[frameWidth * frameHeight];
-		core->m_CameraHandler.push_back({ frameWidth, frameHeight, fps, defaultDisplayHandler, rawBuffer, 0, {}, NULL });
+		core->m_CameraHandler.push_back({ frameWidth, frameHeight, fps, defaultDisplayHandler, rawBuffer, 0, {}, NULL, 1 });
 
 		pIStDataStreamList.Register(pIStDeviceReleasable->CreateIStDataStream(0));
 		core->m_cameraCount++;
@@ -136,16 +140,6 @@ DWORD WINAPI mainThreadFunction(LPVOID lpParam)
 			const size_t nImageWidth = pIStImage->GetImageWidth();
 			const size_t nImageHeight = pIStImage->GetImageHeight();
 
-			int nConvert = 0;
-			switch (pIStPixelFormatInfo->GetPixelColorFilter()) {
-			case(StPixelColorFilter_BayerRG): nConvert = StreamBitmapRenderer::BITMAP_BAYER_RG;	break;
-			case(StPixelColorFilter_BayerGR): nConvert = StreamBitmapRenderer::BITMAP_BAYER_GR;	break;
-			case(StPixelColorFilter_BayerGB): nConvert = StreamBitmapRenderer::BITMAP_BAYER_GB;	break;
-			case(StPixelColorFilter_BayerBG): nConvert = StreamBitmapRenderer::BITMAP_BAYER_BG;	break;
-			default:
-				continue;
-			}
-
 			SentechCameraCore::CameraHandler* targetCameraHandler = &core->m_CameraHandler[idx];
 			targetCameraHandler->frameCount++;
 			memcpy(
@@ -153,6 +147,15 @@ DWORD WINAPI mainThreadFunction(LPVOID lpParam)
 				pIStImage->GetImageBuffer(),
 				targetCameraHandler->frameWidth * targetCameraHandler->frameHeight
 			);
+
+			switch (pIStPixelFormatInfo->GetPixelColorFilter()) {
+			case(StPixelColorFilter_BayerRG): targetCameraHandler->pixelFormat = StreamBitmapRenderer::BITMAP_BAYER_RG;	break;
+			case(StPixelColorFilter_BayerGR): targetCameraHandler->pixelFormat = StreamBitmapRenderer::BITMAP_BAYER_GR;	break;
+			case(StPixelColorFilter_BayerGB): targetCameraHandler->pixelFormat = StreamBitmapRenderer::BITMAP_BAYER_GB;	break;
+			case(StPixelColorFilter_BayerBG): targetCameraHandler->pixelFormat = StreamBitmapRenderer::BITMAP_BAYER_BG;	break;
+			default:
+				continue;
+			}
 
 			// If not last device, then skip
 			//if (pIStDevice != pIStDeviceList[m_cameraCount - 1])
@@ -170,7 +173,7 @@ DWORD WINAPI mainThreadFunction(LPVOID lpParam)
 					it->buffer,
 					it->frameWidth,
 					it->frameHeight,
-					nConvert);
+					it->pixelFormat);
 			}
 
 			switch (core->m_recordState) {
