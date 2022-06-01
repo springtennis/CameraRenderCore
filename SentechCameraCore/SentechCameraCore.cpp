@@ -122,6 +122,9 @@ DWORD WINAPI mainThreadFunction(LPVOID lpParam)
 						continue;
 					}
 
+					if (!core->m_CameraHandler[i].acquisitionState)
+						continue;
+
 					if (core->m_CameraHandler[i].maxFps > core->m_CameraHandler[mostFastCameraIdx].maxFps)
 						mostFastCameraIdx = i;
 				}
@@ -262,7 +265,10 @@ DWORD WINAPI mainThreadFunction(LPVOID lpParam)
 			break;
 			}
 
-			if (id % 10 == 0)
+			UINT skipCount = (UINT)(core->m_CameraHandler[mostFastCameraIdx].maxFps / 30);
+			if (skipCount == 0) skipCount = 1;
+
+			if (id % skipCount == 0)
 			{
 				core->m_streamBitmapRenderer.DrawOnce();
 			}

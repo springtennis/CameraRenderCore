@@ -44,17 +44,16 @@ namespace SimpleCameraStreamerWPF
 
         private void onSwitchCameraClick(object sender, RoutedEventArgs e)
         {
-            if (activeCamera == 0)
-            {
-                hwndSentechCamera.SetDisplayInfo(0, 0.0f, 0.0f, 0.5f, 1.0f, 0, 255);
-                hwndSentechCamera.SetDisplayInfo(1, 0.0f, 0.0f, 0.5f, 1.0f, 0, 0);
-                activeCamera = 1;
-            }
-            else if(activeCamera == 1)
-            {
-                hwndSentechCamera.SetDisplayInfo(1, 0.0f, 0.0f, 0.5f, 1.0f, 0, 255);
-                hwndSentechCamera.SetDisplayInfo(0, 0.0f, 0.0f, 0.5f, 1.0f, 0, 0);
+            activeCamera++;
+            if(activeCamera >= hwndSentechCamera.GetCameraCount())
                 activeCamera = 0;
+
+            for(uint i = 0; i < hwndSentechCamera.GetCameraCount(); i++)
+            {
+                if (i == activeCamera)
+                    hwndSentechCamera.SetDisplayInfo(i, 0.0f, 0.0f, 0.5f, 1.0f, 0, 0);
+                else
+                    hwndSentechCamera.SetDisplayInfo(i, 0.0f, 0.0f, 0.5f, 1.0f, 0, 255);
             }
         }
     }
