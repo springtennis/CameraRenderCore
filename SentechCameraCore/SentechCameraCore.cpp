@@ -67,7 +67,9 @@ DWORD WINAPI mainThreadFunction(LPVOID lpParam)
 
 		DisplayHandler defaultDisplayHandler = core->m_streamBitmapRenderer.RegisterBitmapRenderer(defaultDisplayInfo);
 		char* rawBuffer = new char[frameWidth * frameHeight];
-		core->m_CameraHandler.push_back({ frameWidth, frameHeight, fps, defaultDisplayHandler, rawBuffer, 0, {}, NULL, 1 });
+		core->m_CameraHandler.push_back(
+			{ frameWidth, frameHeight, fps, 
+			defaultDisplayHandler, rawBuffer, 0, {}, NULL, 1, false });
 
 		pIStDataStreamList.Register(pIStDeviceReleasable->CreateIStDataStream(0));
 		core->m_cameraCount++;
@@ -78,7 +80,6 @@ DWORD WINAPI mainThreadFunction(LPVOID lpParam)
 	///////////////////////////////////
 	//pIStDataStreamList.StartAcquisition(GENTL_INFINITE);
 	//pIStDeviceList.AcquisitionStart();
-	vector<BOOL> acquisitionState(core->m_cameraCount, false);
 
 	core->m_atomicInt = 0; // Init finish
 
@@ -91,19 +92,19 @@ DWORD WINAPI mainThreadFunction(LPVOID lpParam)
 				// Turn On/Off camera
 				for (int i = 0; i < core->m_cameraCount; i++)
 				{
-					if (acquisitionState[i] &&
+					if (core->m_CameraHandler[i].acquisitionState &&
 						core->m_CameraHandler[i].displayHandler.displayInfo.displayMode == BitmapRenderer::Frame_DisplayModeNone)
 					{
 						pIStDeviceList[i]->AcquisitionStop();
 						//pIStDataStreamList[i]->StopAcquisition();
-						acquisitionState[i] = false;
+						core->m_CameraHandler[i].acquisitionState = false;
 					}
-					else if (!acquisitionState[i] &&
+					else if (!core->m_CameraHandler[i].acquisitionState &&
 						core->m_CameraHandler[i].displayHandler.displayInfo.displayMode != BitmapRenderer::Frame_DisplayModeNone)
 					{
 						pIStDataStreamList[i]->StartAcquisition(GENTL_INFINITE);
 						pIStDeviceList[i]->AcquisitionStart();
-						acquisitionState[i] = true;
+						core->m_CameraHandler[i].acquisitionState = true;
 					}
 				}
 				core->m_displayChange = false;
@@ -127,7 +128,7 @@ DWORD WINAPI mainThreadFunction(LPVOID lpParam)
 			if (idx == core->m_cameraCount)
 				continue;
 
-			if (!acquisitionState[idx])
+			if (!core->m_CameraHandler[idx].acquisitionState)
 				continue;
 
 			// Debayering
