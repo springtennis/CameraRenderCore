@@ -80,6 +80,7 @@ DWORD WINAPI mainThreadFunction(LPVOID lpParam)
 	///////////////////////////////////
 	//pIStDataStreamList.StartAcquisition(GENTL_INFINITE);
 	//pIStDeviceList.AcquisitionStart();
+	INT mostFastCameraIdx = -1;
 
 	core->m_atomicInt = 0; // Init finish
 
@@ -89,8 +90,10 @@ DWORD WINAPI mainThreadFunction(LPVOID lpParam)
 
 			if (core->m_displayChange)
 			{
+				int i;
+
 				// Turn On/Off camera
-				for (int i = 0; i < core->m_cameraCount; i++)
+				for (i = 0; i < core->m_cameraCount; i++)
 				{
 					if (core->m_CameraHandler[i].acquisitionState &&
 						core->m_CameraHandler[i].displayHandler.displayInfo.displayMode == BitmapRenderer::Frame_DisplayModeNone)
@@ -106,6 +109,21 @@ DWORD WINAPI mainThreadFunction(LPVOID lpParam)
 						pIStDeviceList[i]->AcquisitionStart();
 						core->m_CameraHandler[i].acquisitionState = true;
 					}
+				}
+
+				mostFastCameraIdx = -1;
+				for (i = 0; i < core->m_cameraCount; i++)
+				{
+					if (mostFastCameraIdx < 0)
+					{
+						if (core->m_CameraHandler[i].acquisitionState)
+							mostFastCameraIdx = i;
+						
+						continue;
+					}
+
+					if (core->m_CameraHandler[i].maxFps > core->m_CameraHandler[mostFastCameraIdx].maxFps)
+						mostFastCameraIdx = i;
 				}
 				core->m_displayChange = false;
 			}
@@ -158,9 +176,12 @@ DWORD WINAPI mainThreadFunction(LPVOID lpParam)
 				continue;
 			}
 
-			// If not last device, then skip
-			//if (pIStDevice != pIStDeviceList[m_cameraCount - 1])
-			//	continue;
+			// If not the fastest device
+			if (mostFastCameraIdx == -1)
+				continue;
+
+			if (idx != mostFastCameraIdx)
+				continue;
 
 			// <---------------------------------------------------------------------------------------------------------- Critical Section
 			while (core->m_atomicInt != 0);
@@ -192,7 +213,7 @@ DWORD WINAPI mainThreadFunction(LPVOID lpParam)
 						delete it->recorder;
 					}
 
-					if (it->filepath[0] != '\0')
+					if (it->filepath[0] != '\0' && it->acquisitionState)
 					{
 						it->recorder = new Mp4Recorder(
 							it->filepath,
@@ -217,7 +238,7 @@ DWORD WINAPI mainThreadFunction(LPVOID lpParam)
 				std::vector<SentechCameraCore::CameraHandler>::iterator it;
 				for (it = core->m_CameraHandler.begin(); it != core->m_CameraHandler.end(); it++)
 				{
-					if (it->recorder)
+					if (it->recorder && it->acquisitionState)
 						it->recorder->put(it->displayHandler.pBitmapRenderer->m_pBitmapBuffer);
 				}
 			}
