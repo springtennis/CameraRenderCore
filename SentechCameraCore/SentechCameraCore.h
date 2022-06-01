@@ -25,6 +25,7 @@ namespace SentechCameraCore {
 		Mp4Recorder* recorder;
 		UINT pixelFormat;
 		BOOL acquisitionState;
+		BOOL isNewFrame;
 	};
 
 	public class Core

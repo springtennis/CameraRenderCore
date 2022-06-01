@@ -69,7 +69,7 @@ DWORD WINAPI mainThreadFunction(LPVOID lpParam)
 		char* rawBuffer = new char[frameWidth * frameHeight];
 		core->m_CameraHandler.push_back(
 			{ frameWidth, frameHeight, fps, 
-			defaultDisplayHandler, rawBuffer, 0, {}, NULL, 1, false });
+			defaultDisplayHandler, rawBuffer, 0, {}, NULL, 1, false, false });
 
 		pIStDataStreamList.Register(pIStDeviceReleasable->CreateIStDataStream(0));
 		core->m_cameraCount++;
@@ -179,6 +179,8 @@ DWORD WINAPI mainThreadFunction(LPVOID lpParam)
 				continue;
 			}
 
+			targetCameraHandler->isNewFrame = true;
+
 			// If not the fastest device
 			if (mostFastCameraIdx == -1)
 				continue;
@@ -193,12 +195,16 @@ DWORD WINAPI mainThreadFunction(LPVOID lpParam)
 			std::vector<SentechCameraCore::CameraHandler>::iterator it;
 			for (it = core->m_CameraHandler.begin(); it != core->m_CameraHandler.end(); it++)
 			{
-				core->m_streamBitmapRenderer.RegisterBitmapBuffer(
-					&it->displayHandler,
-					it->buffer,
-					it->frameWidth,
-					it->frameHeight,
-					it->pixelFormat);
+				if (it->isNewFrame)
+				{
+					core->m_streamBitmapRenderer.RegisterBitmapBuffer(
+						&it->displayHandler,
+						it->buffer,
+						it->frameWidth,
+						it->frameHeight,
+						it->pixelFormat);
+					it->isNewFrame = false;
+				}
 			}
 
 			switch (core->m_recordState) {
