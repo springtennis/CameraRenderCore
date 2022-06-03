@@ -59,6 +59,7 @@ DWORD WINAPI mainThreadFunction(LPVOID lpParam)
 
 		// fps must be multiplication of 30
 		float fpsTarget = (int)(fpsMax / 30.0) * 30;
+		if (fpsTarget > 1000) fpsTarget = 60;
 		GenApi::CFloatPtr(GetCNodePtr("AcquisitionFrameRate", pINodeMap))->SetValue(fpsTarget);
 
 		size_t frameWidth = (size_t)GenApi::CIntegerPtr(GetCNodePtr("Width", pINodeMap))->GetValue();
@@ -87,7 +88,6 @@ DWORD WINAPI mainThreadFunction(LPVOID lpParam)
 	while (core->available)
 	{
 		try {
-
 			if (core->m_displayChange)
 			{
 				int i;
@@ -155,7 +155,6 @@ DWORD WINAPI mainThreadFunction(LPVOID lpParam)
 			// Debayering
 			const StApi::EStPixelFormatNamingConvention_t ePFNC = pIStImage->GetImagePixelFormat();
 			StApi::IStPixelFormatInfo* const pIStPixelFormatInfo = StApi::GetIStPixelFormatInfo(ePFNC);
-
 			if (!pIStPixelFormatInfo->IsBayer())
 				continue;
 
@@ -164,6 +163,7 @@ DWORD WINAPI mainThreadFunction(LPVOID lpParam)
 
 			SentechCameraCore::CameraHandler* targetCameraHandler = &core->m_CameraHandler[idx];
 			targetCameraHandler->frameCount++;
+			targetCameraHandler->isNewFrame = true;
 			memcpy(
 				targetCameraHandler->buffer,
 				pIStImage->GetImageBuffer(),
@@ -179,8 +179,6 @@ DWORD WINAPI mainThreadFunction(LPVOID lpParam)
 				continue;
 			}
 
-			targetCameraHandler->isNewFrame = true;
-
 			// If not the fastest device
 			if (mostFastCameraIdx == -1)
 				continue;
@@ -195,7 +193,7 @@ DWORD WINAPI mainThreadFunction(LPVOID lpParam)
 			std::vector<SentechCameraCore::CameraHandler>::iterator it;
 			for (it = core->m_CameraHandler.begin(); it != core->m_CameraHandler.end(); it++)
 			{
-				if (it->isNewFrame)
+				if (it->isNewFrame && it->acquisitionState)
 				{
 					core->m_streamBitmapRenderer.RegisterBitmapBuffer(
 						&it->displayHandler,
@@ -220,6 +218,7 @@ DWORD WINAPI mainThreadFunction(LPVOID lpParam)
 					{
 						it->recorder->end();
 						delete it->recorder;
+						it->recorder = NULL;
 					}
 
 					if (it->filepath[0] != '\0' && it->acquisitionState)
@@ -281,7 +280,6 @@ DWORD WINAPI mainThreadFunction(LPVOID lpParam)
 
 			core->m_atomicInt = 0;
 			// Critical Section ----------------------------------------------------------------------------------------------------------->
-
 		}
 		catch (...)
 		{

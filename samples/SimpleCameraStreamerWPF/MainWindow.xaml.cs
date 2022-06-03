@@ -28,6 +28,7 @@ namespace SimpleCameraStreamerWPF
             ControlHostElement.Child = hwndSentechCamera;
             while (hwndSentechCamera.GetCameraCount() == 0) ;
             hwndSentechCamera.SetDisplayInfo(activeCamera, 0.0f, 0.0f, 0.5f, 1.0f, 0, 0);
+            hwndSentechCamera.SetDisplayInfo(1, 0.5f, 0.0f, 0.5f, 1.0f, 0, 0);
         }
 
         private void onRecordClick(object sender, RoutedEventArgs e)
