@@ -32,6 +32,16 @@ DWORD WINAPI mainThreadFunction(LPVOID lpParam)
 
 	hr = core->m_streamBitmapRenderer.InitInstance(core->m_hwndHost);
 
+	// Recording box
+	CHAR recordingBoxBuffer[4] = { 0, 0, 255, 0 };
+	DisplayInfo recordBoxDisplayInfo = {
+		0.5f, 0.05f, 0.05f, 0.05f,
+		core->m_dpiXScale, core->m_dpiYScale,
+		100,
+		BitmapRenderer::Frame_DisplayModeNone };
+	DisplayHandler recordBoxDisplayHandler = core->m_streamBitmapRenderer.RegisterBitmapRenderer(recordBoxDisplayInfo);
+	core->m_streamBitmapRenderer.RegisterBitmapBuffer(&recordBoxDisplayHandler, recordingBoxBuffer, 1, 1, StreamBitmapRenderer::BITMAP_RGBA);
+
 	///////////////////////////////////
 	// [[ Init STApi Camera ]]
 	///////////////////////////////////
@@ -237,6 +247,12 @@ DWORD WINAPI mainThreadFunction(LPVOID lpParam)
 					}
 				}
 			}
+
+			recordBoxDisplayInfo.displayMode = BitmapRenderer::Frame_DisplayModeFit;
+			core->m_streamBitmapRenderer.ModifyBitmapRenderer(
+				&recordBoxDisplayHandler,
+				recordBoxDisplayInfo);
+
 			PlaySound(L"C:\\Users\\Bluesink\\Music\\play.wav", NULL, SND_FILENAME | SND_ASYNC);
 			core->m_recordState = core->REC_RECORDING;
 			break;
@@ -266,6 +282,12 @@ DWORD WINAPI mainThreadFunction(LPVOID lpParam)
 					}
 				}
 			}
+
+			recordBoxDisplayInfo.displayMode = BitmapRenderer::Frame_DisplayModeNone;
+			core->m_streamBitmapRenderer.ModifyBitmapRenderer(
+				&recordBoxDisplayHandler,
+				recordBoxDisplayInfo);
+
 			core->m_recordState = core->REC_STOPPED;
 			break;
 			}
