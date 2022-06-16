@@ -33,14 +33,18 @@ DWORD WINAPI mainThreadFunction(LPVOID lpParam)
 	hr = core->m_streamBitmapRenderer.InitInstance(core->m_hwndHost);
 
 	// Recording box
-	CHAR recordingBoxBuffer[4] = { 0, 0, 255, 0 };
-	DisplayInfo recordBoxDisplayInfo = {
-		0.5f, 0.05f, 0.05f, 0.05f,
+	DisplayInfo recordTextDisplayInfo = {
+		0.0f, 0.0f,
+		0.1f, 0.1f,
 		core->m_dpiXScale, core->m_dpiYScale,
-		100,
-		BitmapRenderer::Frame_DisplayModeNone };
-	DisplayHandler recordBoxDisplayHandler = core->m_streamBitmapRenderer.RegisterBitmapRenderer(recordBoxDisplayInfo);
-	core->m_streamBitmapRenderer.RegisterBitmapBuffer(&recordBoxDisplayHandler, recordingBoxBuffer, 1, 1, StreamBitmapRenderer::BITMAP_RGBA);
+		0,
+		BitmapRenderer::Frame_DisplayModeCrop
+	};
+	WCHAR recordText[10];
+	UINT recordTextLength = 0;
+	float recordTime = 0.0f;
+	TextDisplayHandler* recordTextHandler
+		= core->m_streamBitmapRenderer.RegisterTextRenderer(recordTextDisplayInfo, 20, 1.0f, 0.0f, 0.0f);
 
 	///////////////////////////////////
 	// [[ Init STApi Camera ]]
@@ -248,10 +252,7 @@ DWORD WINAPI mainThreadFunction(LPVOID lpParam)
 				}
 			}
 
-			recordBoxDisplayInfo.displayMode = BitmapRenderer::Frame_DisplayModeFit;
-			core->m_streamBitmapRenderer.ModifyBitmapRenderer(
-				&recordBoxDisplayHandler,
-				recordBoxDisplayInfo);
+			recordTime = 0.0f;
 
 			PlaySound(L"C:\\Users\\Bluesink\\Music\\play.wav", NULL, SND_FILENAME | SND_ASYNC);
 			core->m_recordState = core->REC_RECORDING;
@@ -265,6 +266,8 @@ DWORD WINAPI mainThreadFunction(LPVOID lpParam)
 					if (it->recorder && it->acquisitionState)
 						it->recorder->put(it->displayHandler.pBitmapRenderer->m_pBitmapBuffer);
 				}
+
+				recordTime += 1.0f / core->m_CameraHandler[mostFastCameraIdx].maxFps;
 			}
 			break;
 
@@ -283,11 +286,6 @@ DWORD WINAPI mainThreadFunction(LPVOID lpParam)
 				}
 			}
 
-			recordBoxDisplayInfo.displayMode = BitmapRenderer::Frame_DisplayModeNone;
-			core->m_streamBitmapRenderer.ModifyBitmapRenderer(
-				&recordBoxDisplayHandler,
-				recordBoxDisplayInfo);
-
 			core->m_recordState = core->REC_STOPPED;
 			break;
 			}
@@ -297,6 +295,15 @@ DWORD WINAPI mainThreadFunction(LPVOID lpParam)
 
 			if (id % skipCount == 0)
 			{
+				if(core->m_recordState == core->REC_RECORDING)
+					recordTextLength = swprintf(recordText, 10, L"%02d:%02d", (int)(recordTime / 60.0f), (int)recordTime % 60);
+				else
+				{
+					recordText[0] = L'\0';
+					recordTextLength = 0;
+				}
+
+				core->m_streamBitmapRenderer.RegisterText(recordTextHandler, recordText, recordTextLength);
 				core->m_streamBitmapRenderer.DrawOnce();
 			}
 
