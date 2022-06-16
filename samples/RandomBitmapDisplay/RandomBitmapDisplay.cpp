@@ -79,6 +79,9 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     DisplayHandler display1 = g_streamBitmapRenderer.RegisterBitmapRenderer(display1Info);
     DisplayHandler display2 = g_streamBitmapRenderer.RegisterBitmapRenderer(display2Info);
 
+    DisplayInfo textInfo = { 0.0f, 0.0f, 0.1f, 0.1f, dpiXScale, dpiYScale, 0, BitmapRenderer::Frame_DisplayModeCrop };
+    TextDisplayHandler* text1 = g_streamBitmapRenderer.RegisterTextRenderer(textInfo, 20, 1.0f, 0.0f, 0.0f);
+
     // Pseudo bitmap image in memory
     UINT b1_width = 20;
     UINT b1_height = 20;
@@ -93,6 +96,12 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     // Register buffer
     g_streamBitmapRenderer.RegisterBitmapBuffer(&display1, b1_buffer, b1_width, b1_height, StreamBitmapRenderer::BITMAP_RGBA);
     g_streamBitmapRenderer.RegisterBitmapBuffer(&display2, b2_buffer, b2_width, b2_height, StreamBitmapRenderer::BITMAP_RGBA);
+
+    // Register text
+    WCHAR textBuffer[128];
+    UINT textLength = 0;
+    textLength = swprintf(textBuffer, 128, L"Hello!");
+    g_streamBitmapRenderer.RegisterText(text1, textBuffer, textLength);
 
     // Loop
     MSG msg = { 0 };
@@ -114,6 +123,10 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
             start = current;
             randomBitmap(b1_buffer, b1_width, b1_height);
             randomBitmap(b2_buffer, b2_width, b2_height);
+
+            textLength = swprintf(textBuffer, 128, L"%02d", loopCnt);
+            g_streamBitmapRenderer.RegisterText(text1, textBuffer, textLength);
+
             g_streamBitmapRenderer.DrawOnce();
 
             // Change display layout dynamically

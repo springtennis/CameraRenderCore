@@ -137,7 +137,7 @@
       </DelayLoadDLLs>
     </Link>
     <Lib>
-      <AdditionalDependencies>d2d1.lib;opencv_core455d.lib;opencv_imgproc455d.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>d2d1.lib;Dwrite.lib;opencv_core455d.lib;opencv_imgproc455d.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>C:\opencv\x64\vc17\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Lib>
   </ItemDefinitionGroup>
@@ -162,7 +162,7 @@
     </Link>
     <Lib>
       <AdditionalLibraryDirectories>C:\opencv\x64\vc17\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>d2d1.lib;opencv_core455.lib;opencv_imgproc455.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>d2d1.lib;Dwrite.lib;opencv_core455.lib;opencv_imgproc455.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <LinkTimeCodeGeneration>
       </LinkTimeCodeGeneration>
     </Lib>

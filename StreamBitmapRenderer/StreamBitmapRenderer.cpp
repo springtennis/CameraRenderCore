@@ -15,11 +15,15 @@ StreamBitmapRenderer::~StreamBitmapRenderer()
 {
 	SafeRelease(&m_pRenderTarget);
 	SafeRelease(&m_pDirect2dFactory);
+
 	for (int i = 0; i < m_DisplayHandler.size(); i++) {
 		delete m_DisplayHandler[i].pBitmapRenderer;
 	}
 	m_DisplayHandler.clear();
 	m_DisplayHandler.shrink_to_fit();
+
+	m_TextDisplayHandler.clear();
+	m_TextDisplayHandler.shrink_to_fit();
 }
 
 HRESULT StreamBitmapRenderer::InitInstance(HWND hwndHost)
@@ -50,6 +54,20 @@ HRESULT StreamBitmapRenderer::InitInstance(HWND hwndHost)
 	);
 	if (FAILED(hr))
 		return hr;
+
+	// Create a DirectWrite factory
+	hr = DWriteCreateFactory(
+		DWRITE_FACTORY_TYPE_SHARED,
+		__uuidof(m_pDWriteFactory),
+		reinterpret_cast<IUnknown**>(&m_pDWriteFactory)
+	);
+	if (FAILED(hr))
+		return hr;
+
+	hr = m_pRenderTarget->CreateSolidColorBrush(
+		D2D1::ColorF(D2D1::ColorF::Black, 1.0f),
+		&m_pTextBackgroundBrush
+	);
 
 	return hr;
 }
@@ -83,6 +101,47 @@ DisplayHandler StreamBitmapRenderer::RegisterBitmapRenderer(DisplayInfo displayI
 	it = m_DisplayHandler.insert(it, displayHandler);
 
 	return displayHandler;
+}
+
+TextDisplayHandler* StreamBitmapRenderer::RegisterTextRenderer(
+	DisplayInfo displayInfo,
+	float fontSize,
+	float R, float G, float B)
+{
+	if (!m_pRenderTarget)
+		return NULL;
+
+	HRESULT hr = S_OK;
+	TextDisplayHandler handler;
+
+	handler.displayInfo = displayInfo;
+	handler.length = 0;
+
+	// Create a DirectWrite text format object
+	hr = m_pDWriteFactory->CreateTextFormat(
+		L"Verdana",
+		NULL,
+		DWRITE_FONT_WEIGHT_NORMAL,
+		DWRITE_FONT_STYLE_NORMAL,
+		DWRITE_FONT_STRETCH_NORMAL,
+		fontSize,
+		L"",
+		&handler.pTextFormat
+	);
+	if (FAILED(hr))
+		return NULL;
+
+	handler.pTextFormat->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
+	handler.pTextFormat->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
+
+	hr = m_pRenderTarget->CreateSolidColorBrush(
+		D2D1::ColorF(R, G, B, 1.0f),
+		&handler.pTextBrush
+	);
+
+	m_TextDisplayHandler.push_back(handler);
+
+	return &m_TextDisplayHandler.back();
 }
 
 bool cmpBitmapRenderer(DisplayHandler a, DisplayHandler b)
@@ -165,6 +224,21 @@ HRESULT StreamBitmapRenderer::RegisterBitmapBuffer(
 	return E_FAIL;
 }
 
+HRESULT StreamBitmapRenderer::RegisterText(
+	TextDisplayHandler* textDisplayHandler,
+	WCHAR* text,
+	UINT length)
+{
+	if (!m_pRenderTarget || !textDisplayHandler->pTextFormat || !textDisplayHandler->pTextBrush)
+		return E_FAIL;
+
+	if (length > 128) length = 128;
+	textDisplayHandler->length = length;
+	wmemcpy(textDisplayHandler->text, text, length);
+
+	return S_OK;
+}
+
 void StreamBitmapRenderer::Resize(UINT width, UINT height)
 {
 	if (m_pRenderTarget)
@@ -184,7 +258,38 @@ void StreamBitmapRenderer::DrawOnce()
 		m_layoutChanged = FALSE;
 	}
 
+	// Draw Bitmap
 	for (UINT i = 0; i < m_DisplayHandler.size(); i++)
 		m_DisplayHandler[i].pBitmapRenderer->Update();
+
+	// Draw Text
+	D2D1_SIZE_F rtSize = m_pRenderTarget->GetSize();
+	float width = rtSize.width;
+	float height = rtSize.height;
+
+	for (UINT i = 0; i < m_TextDisplayHandler.size(); i++)
+	{
+		if (m_TextDisplayHandler[i].displayInfo.displayMode == BitmapRenderer::Frame_DisplayModeNone)
+			continue;
+
+		float startX = width * m_TextDisplayHandler[i].displayInfo.startX;
+		float startY = height * m_TextDisplayHandler[i].displayInfo.startY;
+		float lenX = width * m_TextDisplayHandler[i].displayInfo.lenX;
+		float lenY = height * m_TextDisplayHandler[i].displayInfo.lenY;
+
+		D2D1_RECT_F rectText = D2D1::RectF(startX, startY, lenX, lenY);
+
+		// Draw background Box
+		m_pRenderTarget->FillRectangle(&rectText, m_pTextBackgroundBrush);
+
+		m_pRenderTarget->DrawTextW(
+			m_TextDisplayHandler[i].text,
+			m_TextDisplayHandler[i].length,
+			m_TextDisplayHandler[i].pTextFormat,
+			rectText,
+			m_TextDisplayHandler[i].pTextBrush
+		);
+	}
+
 	m_pRenderTarget->EndDraw();
 }
